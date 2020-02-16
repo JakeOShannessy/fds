@@ -13,6 +13,7 @@ jobs:
       - run:
           name: Setup
           command: |
+            apt -y install software-properties-common
             add-apt-repository ppa:ubuntu-toolchain-r/test
             apt update
             apt -y install gfortran-9 g++-9
