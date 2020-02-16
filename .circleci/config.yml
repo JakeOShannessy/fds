@@ -6,20 +6,20 @@ jobs:
     steps:
       - run:
           name: Setup git
-          command: sudo apt install git ssh
+          command: apt install git ssh
       - checkout
       - run:
           name: Setup
           command: |
-            sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-            sudo apt update
-            sudo apt install gfortran-9
+            add-apt-repository ppa:ubuntu-toolchain-r/test
+            apt update
+            apt install gfortran-9
 
-            sudo update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 60
-            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60
-            sudo update-alternatives --install /usr/bin/cpp cpp /usr/bin/cpp-9 60
-            sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 60
-            yes '' | sudo update-alternatives --force --all
+            update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 60
+            update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60
+            update-alternatives --install /usr/bin/cpp cpp /usr/bin/cpp-9 60
+            update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 60
+            yes '' | update-alternatives --force --all
             gfortran --version
 
             wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.2.tar.gz
@@ -27,7 +27,7 @@ jobs:
             pushd openmpi-4.0.2
             ./configure FC=gfortran-9 CC=gcc-9 CPP=cpp-9 --prefix=/shared/openmpi_64 --enable-mpirun-prefix-by-default --enable-mpi-fortran --enable-static --disable-shared
             make
-            sudo make install
+            make install
             popd
 
 
