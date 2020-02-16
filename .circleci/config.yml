@@ -18,10 +18,10 @@ jobs:
             apt update
             apt -y install gfortran-9 g++-9
 
-            update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 60
-            update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60
-            update-alternatives --install /usr/bin/cpp cpp /usr/bin/cpp-9 60
-            update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 60
+            yes '' | update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 60
+            yes '' | update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60
+            yes '' | update-alternatives --install /usr/bin/cpp cpp /usr/bin/cpp-9 60
+            yes '' | update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 60
             yes '' | update-alternatives --force --all
             gfortran --version
 
