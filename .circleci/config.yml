@@ -44,14 +44,6 @@ jobs:
             ./make_fds.sh
             cp fds_mpi_gnu_linux_64 ~
           no_output_timeout: 60m
-      # - persist_to_workspace:
-      #     # Must be an absolute path, or relative path from working_directory.
-      #     # This is a directory on the container which is taken to be the root
-      #     # directory of the workspace.
-      #     root: /root/workspace
-      #     # Must be relative path from root
-      #     paths:
-      #       - fds_mpi_gnu_linux_64
 
 workflows:
   version: 2
