@@ -4,6 +4,9 @@ jobs:
     docker:
       - image: ubuntu:18.04
     steps:
+      - run:
+          name: Setup git
+          command: sudo apt install git ssh
       - checkout
       - run:
           name: Setup
