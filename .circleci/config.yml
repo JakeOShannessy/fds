@@ -1,0 +1,60 @@
+version: 2.1
+jobs:
+  build-fds:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - checkout
+      - run:
+          name: Setup
+          command: |
+            sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+            sudo apt update
+            sudo apt install gfortran-9
+
+            sudo update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 60
+            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60
+            sudo update-alternatives --install /usr/bin/cpp cpp /usr/bin/cpp-9 60
+            sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 60
+            yes '' | sudo update-alternatives --force --all
+            gfortran --version
+
+            wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.2.tar.gz
+            tar -xzvf openmpi-4.0.2.tar.gz
+            pushd openmpi-4.0.2
+            ./configure FC=gfortran-9 CC=gcc-9 CPP=cpp-9 --prefix=/shared/openmpi_64 --enable-mpirun-prefix-by-default --enable-mpi-fortran --enable-static --disable-shared
+            make
+            sudo make install
+            popd
+
+
+          no_output_timeout: 60m
+      - run:
+          name: Build
+          command: |
+            export MPIDIST=/shared/openmpi_64
+            export PATH=$MPIDIST/bin:$PATH
+            export LD_LIBRARY_PATH=$MPIDIST/lib:$LD_LIBRARY_PATH
+            which mpirun
+
+            # export INTEL_COMPILERS_AND_LIBS=/opt/intel/compilers_and_libraries_2017/linux
+            # source $INTEL_COMPILERS_AND_LIBS/mkl/bin/mklvars.sh intel64
+
+            cd fds/Build/mpi_gnu_linux_64
+            ./make_fds.sh
+            cp fds_mpi_gnu_linux_64 ~
+          no_output_timeout: 60m
+      # - persist_to_workspace:
+      #     # Must be an absolute path, or relative path from working_directory.
+      #     # This is a directory on the container which is taken to be the root
+      #     # directory of the workspace.
+      #     root: /root/workspace
+      #     # Must be relative path from root
+      #     paths:
+      #       - fds_mpi_gnu_linux_64
+
+workflows:
+  version: 2
+  fds:
+    jobs:
+      - build-fds
