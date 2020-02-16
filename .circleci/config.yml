@@ -7,13 +7,14 @@ jobs:
       - run:
           name: Setup git
           command: |
-            add-apt-repository ppa:ubuntu-toolchain-r/test
             apt update
             apt install git ssh
       - checkout
       - run:
           name: Setup
           command: |
+            add-apt-repository ppa:ubuntu-toolchain-r/test
+            apt update
             apt install gfortran-9
 
             update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 60
