@@ -4,17 +4,19 @@ name: CMake Build
 
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-latest
+    name: build ${{ matrix.os }} - openmp=${{ matrix.openmp }} - mkl=${{ matrix.mkl }} - gcc
     strategy:
       matrix:
         # container: ["fedora:35"]
+        os:
+          - ubuntu-latest
         openmp:
           - on
           - off
-        # mkl:
-        #   - on
-        #   - off
+        mkl:
+          # - on
+          - off
+    runs-on: ${{ matrix.os }}
     # container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v2
