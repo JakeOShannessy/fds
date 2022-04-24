@@ -12,6 +12,7 @@
 *.lib
 *.i90
 *.dll
+cbuild/
 
 # executables
 fds_intel_*
