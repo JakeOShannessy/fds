@@ -1,6 +1,6 @@
 on: [push, pull_request]
 
-name: Continuous integration
+name: CMake Build
 
 jobs:
   build:
@@ -18,20 +18,14 @@ jobs:
     # container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v2
-      - name: Add intel RPM repo
+      - name: Add intel apt repo
         run: |
-          tee > /tmp/oneAPI.repo << EOF
-          [oneAPI]
-          name=Intel® oneAPI repository
-          baseurl=https://yum.repos.intel.com/oneapi
-          enabled=1
-          gpgcheck=1
-          repo_gpgcheck=1
-          gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          EOF
-          mv /tmp/oneAPI.repo /etc/yum.repos.d
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+          sudo apt-get update
       - name: Install prerequisites
-      - run: sudo apt-get install -y intel-basekit intel-hpckit
+        run: sudo apt-get install -y intel-basekit intel-hpckit
       - name: Build
         run: |
           source /opt/intel/oneapi/setvars.sh
@@ -43,147 +37,3 @@ jobs:
         run: |
           source /opt/intel/oneapi/setvars.sh
           ctest -j10 --output-on-failure
-  build-rpm:
-    name: Build RPM
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        container: ["fedora:35"]
-        fds-version:
-          - "5.5.3"
-          - "6.1.2"
-          - "6.2.0"
-          - "6.3.0"
-          - "6.3.1"
-          - "6.3.2"
-          - "6.4.0"
-          - "6.5.0"
-          - "6.5.1"
-          - "6.5.2"
-          - "6.5.3"
-          - "6.6.0"
-          - "6.7.0"
-          - "6.7.1"
-          - "6.7.3"
-          - "6.7.4"
-          - "6.7.5"
-          - "6.7.6"
-          - "6.7.7"
-          - "latest"
-    container: ${{ matrix.container }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Add intel apt repo
-        run: |
-          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
-          sudo apt-get update
-      - name: Install prerequisites
-        run: yum install -y git gcc procps kmod openssl-devel cargo rpmdevtools make
-      - run: yum install -y intel-basekit intel-hpckit
-      - name: Build RPM
-        run: |
-          zip fds.sh.zip fds.sh
-          cd ${{ matrix.fds-version }}
-          mkdir -p rpmbuild/SOURCES
-          cp backports.patch rpmbuild/SOURCES || true
-          cp ../fds.sh.zip rpmbuild/SOURCES
-          bash ../makerpm.sh
-      - uses: actions/upload-artifact@v2
-        with:
-          name: FDS-RPMs
-          path: |
-            ${{ matrix.fds-version }}/rpmbuild/RPMS/*/*.rpm
-  build-deb:
-    name: Build deb
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        fds-version:
-          - "5.5.3"
-          - "6.1.2"
-          - "6.2.0"
-          - "6.3.0"
-          - "6.3.1"
-          - "6.3.2"
-          - "6.4.0"
-          - "6.5.0"
-          - "6.5.1"
-          - "6.5.2"
-          - "6.5.3"
-          - "6.6.0"
-          - "6.7.0"
-          - "6.7.1"
-          - "6.7.3"
-          - "6.7.4"
-          - "6.7.5"
-          - "6.7.6"
-          - "6.7.7"
-          - "latest"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Add intel apt repo
-        run: |
-          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
-          sudo apt-get update
-      - name: Install prerequisites
-        run: sudo apt-get install -y git gcc openssl make devscripts debhelper
-      - run: sudo apt-get install -y intel-basekit intel-hpckit
-      - name: Build deb
-        run: |
-          cd ${{ matrix.fds-version }}/deb
-          bash build_debian.sh
-      - uses: actions/upload-artifact@v2
-        with:
-          name: FDS-DEBs
-          path: |
-            ${{ matrix.fds-version }}/deb/*.deb
-  build-arch:
-    name: Build Arch Linux package
-    if: "false"
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        container: ["archlinux:base-devel"]
-        fds-version:
-          - "5.5.3"
-          - "6.1.2"
-          - "6.2.0"
-          - "6.3.0"
-          - "6.3.1"
-          - "6.3.2"
-          - "6.4.0"
-          - "6.5.0"
-          - "6.5.1"
-          - "6.5.2"
-          - "6.5.3"
-          - "6.6.0"
-          - "6.7.0"
-          - "6.7.1"
-          - "6.7.3"
-          - "6.7.4"
-          - "6.7.5"
-          - "6.7.6"
-          - "6.7.7"
-          - "latest"
-    container: ${{ matrix.container }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install prerequisites
-        run: pacman -Sy --noconfirm wget git
-      - run: ./install-oneapi.sh
-      - name: Build Package
-        run: |
-          useradd builder
-          cd ${{ matrix.fds-version }}
-          chown -R builder:builder .
-          cp ../fds.sh .
-          su builder -c "makepkg -f"
-      - uses: actions/upload-artifact@v2
-        with:
-          name: FDS-Arch
-          path: |
-            ${{ matrix.fds-version }}/*.zst
