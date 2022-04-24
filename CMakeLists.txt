@@ -157,7 +157,11 @@ endif()
 target_compile_options(fds PRIVATE -m64 -cpp)#$(GITINFOGNU) $(GNU_COMPINFO) $(FFLAGSMKL_GNU_OPENMPI) $(GFORTRAN_OPTIONS))
 
 # GNU
-# target_compile_options(fds PRIVATE -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics)#$(GITINFOGNU) $(GNU_COMPINFO) $(FFLAGSMKL_GNU_OPENMPI) $(GFORTRAN_OPTIONS))
+if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
+target_compile_options(fds PRIVATE -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics)#$(GITINFOGNU) $(GNU_COMPINFO) $(FFLAGSMKL_GNU_OPENMPI) $(GFORTRAN_OPTIONS))
+endif()
 # Intel
+if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 set(I_IFORT ifort)
 target_compile_options(fds PRIVATE -fc=${I_IFORT} -O2 -ipo -no-wrap-margin -DUSE_IFPORT)
+endif()
