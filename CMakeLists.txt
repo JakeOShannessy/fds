@@ -12,8 +12,8 @@ get_target_property(MKLS MKL::MKL INTERFACE_COMPILE_OPTIONS)
 message(STATUS "MKL Compile Options: ${MKLS}")
 get_target_property(MKLS MKL::MKL INTERFACE_INCLUDE_DIRECTORIES)
 message(STATUS "MKL Include Directories: ${MKLS}")
-find_package(OpenMP)
 endif()
+find_package(OpenMP)
 
 add_executable(fds
     Source/ccib.f90
