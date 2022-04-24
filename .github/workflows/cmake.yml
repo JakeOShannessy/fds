@@ -28,10 +28,10 @@ jobs:
           sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
           sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
           sudo apt-get update
-      - name: Install prerequisites (${{ matrix.compiler }})
+      - name: Install prerequisites (intel)
         if: matrix.compiler == 'intel'
         run: sudo apt-get install -y intel-basekit intel-hpckit
-      - name: Install prerequisites (${{ matrix.compiler }})
+      - name: Install prerequisites (gcc)
         if: matrix.compiler == 'gcc'
         run: sudo apt-get install openmpi-bin
       - name: collect versioned dependencies of apt packages
@@ -56,12 +56,12 @@ jobs:
                                   intel-oneapi-mpi-devel \
                                   intel-oneapi-mkl-devel
           sudo apt-get clean
-      - name: Set compiler (${{ matrix.compiler }})
+      - name: Set compiler (intel)
         if: matrix.compiler == 'intel'
         shell: bash
         run: |
           echo "FC=mpiifort" >> $GITHUB_ENV
-      - name: Set compiler (${{ matrix.compiler }})
+      - name: Set compiler (gcc)
         if: matrix.compiler == 'gcc'
         shell: bash
         run: |
