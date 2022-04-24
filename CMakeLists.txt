@@ -5,13 +5,15 @@ project(fds LANGUAGES Fortran)
 
 # set_property(GLOBAL PROPERTY C_STANDARD 99)
 
-find_package(MKL CONFIG REQUIRED)
+find_package(MKL CONFIG)
+if (MKL_FOUND)
 message(STATUS "${MKL_IMPORTED_TARGETS}")
 get_target_property(MKLS MKL::MKL INTERFACE_COMPILE_OPTIONS)
 message(STATUS "MKL Compile Options: ${MKLS}")
 get_target_property(MKLS MKL::MKL INTERFACE_INCLUDE_DIRECTORIES)
 message(STATUS "MKL Include Directories: ${MKLS}")
 find_package(OpenMP)
+endif()
 
 add_executable(fds
     Source/ccib.f90
