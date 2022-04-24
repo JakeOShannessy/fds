@@ -28,10 +28,10 @@ jobs:
           sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
           sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
           sudo apt-get update
-      - name: Install prerequisites
+      - name: Install prerequisites (${{ matrix.compiler }})
         if: matrix.compiler == 'intel'
         run: sudo apt-get install -y intel-basekit intel-hpckit
-      - name: Install prerequisites
+      - name: Install prerequisites (${{ matrix.compiler }})
         if: matrix.compiler == 'gcc'
         run: sudo apt-get install openmpi-bin
       - name: collect versioned dependencies of apt packages
