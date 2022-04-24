@@ -31,6 +31,28 @@ jobs:
       - name: Install prerequisites
         if: ${{ matrix.compiler }} == 'intel'
         run: sudo apt-get install -y intel-basekit intel-hpckit
+      - name: collect versioned dependencies of apt packages
+        if: ${{ matrix.compiler }} == 'intel'
+        run : |
+          # oneapi-ci/scripts/apt_depends.sh
+          apt-cache depends intel-oneapi-compiler-fortran \
+                            intel-oneapi-mpi-devel \
+                            intel-oneapi-mkl-devel | tee dependencies.txt
+      - name: cache install
+        id: cache-install
+        if: ${{ matrix.compiler }} == 'intel'
+        uses: actions/cache@v2
+        with:
+          path: /opt/intel/oneapi
+          key: install-${{ hashFiles('**/dependencies.txt') }}
+      - name: install
+        if: steps.cache-install.outputs.cache-hit != 'true' && ${{ matrix.compiler }} == 'intel'
+        run: |
+          # oneapi-ci/scripts/install_linux_apt.sh
+          sudo apt-get install -y intel-oneapi-compiler-fortran \
+                                  intel-oneapi-mpi-devel \
+                                  intel-oneapi-mkl-devel
+          sudo apt-get clean
       - name: Set compiler (${{ matrix.compiler }})
         if: ${{ matrix.compiler }} == 'intel'
         shell: bash
