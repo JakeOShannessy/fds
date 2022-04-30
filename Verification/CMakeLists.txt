@@ -1,0 +1,9 @@
+include(CTest)
+file(GLOB TEST_CASES ./**/*.fds)
+
+foreach(fds_path ${TEST_CASES})
+    cmake_path(GET fds_path STEM case_name)
+    cmake_path(GET fds_path PARENT_PATH dir)
+    cmake_path(GET fds_path FILENAME fds_filename)
+    add_test(NAME "Run fds case: ${case_name}" COMMAND fds ${fds_filename} WORKING_DIRECTORY ${dir})
+endforeach()
