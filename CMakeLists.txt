@@ -167,3 +167,7 @@ if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 set(I_IFORT ifort)
 target_compile_options(fds PRIVATE -fc=${I_IFORT} -O2 -ipo -no-wrap-margin -DUSE_IFPORT)
 endif()
+
+include(CTest)
+enable_testing()
+add_subdirectory(Verification)
