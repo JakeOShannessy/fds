@@ -1,5 +1,6 @@
 include(CTest)
-file(GLOB TEST_CASES ./**/*.fds)
+# file(GLOB TEST_CASES ./**/*.fds)
+file(GLOB TEST_CASES ./Fires/*.fds)
 
 foreach(fds_path ${TEST_CASES})
     cmake_path(GET fds_path STEM case_name)
