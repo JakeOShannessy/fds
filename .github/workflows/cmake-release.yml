@@ -1,0 +1,275 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: Release
+
+jobs:
+  build-run:
+    name: Build run RPM
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container: ["fedora:35"]
+    container: ${{ matrix.container }}
+    steps:
+      - name: Install git
+        run: yum install -y git
+      - uses: actions/checkout@v2
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          name: id_rsa # optional
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          config: ${{ secrets.CONFIG }} # ssh_config; optional
+          if_key_exists: fail # replace / ignore / fail; optional (defaults to fail)
+      - name: install prerequisites
+        run: |
+          yum install -y git gcc openssl-devel cargo rpmdevtools
+      - name: List files
+        run: ls -A
+      - name: Install rpm tools
+        run: yum install -y rpmdevtools
+      - name: Create archive
+        run: |
+          spec_path=run/smoke-cloud-run.spec
+          version=$(rpmspec  -q --qf '%{VERSION}' ${spec_path})
+          mkdir -p /github/home/rpmbuild/BUILD
+          mkdir -p /github/home/rpmbuild/BUILDROOT
+          mkdir -p /github/home/rpmbuild/RPMS
+          mkdir -p /github/home/rpmbuild/SOURCES
+          mkdir -p /github/home/rpmbuild/SPECS
+          mkdir -p /github/home/rpmbuild/SRPMS
+          cp ${spec_path} /github/home/rpmbuild/SPECS/
+          git archive --output=/github/home/rpmbuild/SOURCES/${src_name}-${version}.tar.gz --prefix=${src_name}-${version}/ HEAD
+        env:
+          src_name: smoke-cloud-server
+      - name: Build RPM package
+        run: |
+          yum install -y cargo systemd systemd-rpm-macros
+          rpmbuild -ba /github/home/rpmbuild/SPECS/smoke-cloud-run.spec
+        env:
+          QA_RPATHS: 7
+      - name: Copy files
+        run: |
+          spec_path=run/smoke-cloud-run.spec
+          version=$(rpmspec  -q --qf '%{VERSION}' ${spec_path})
+          release=$(rpmspec  -q --qf '%{RELEASE}' ${spec_path})
+          arch=$(rpmspec  -q --qf '%{ARCH}' ${spec_path})
+          mkdir -p dist
+          cp /github/home/rpmbuild/RPMS/${arch}/smoke-cloud-run-${version}-${release}.${arch}.rpm dist
+      - uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --follow-symlinks
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "eu-west-2"
+          SOURCE_DIR: "dist"
+          DEST_DIR: "smoke-cloud-run/${{github.ref_name}}"
+  build-arch:
+    name: Build Arch Linux package
+    runs-on: ubuntu-latest
+    container: "archlinux:base-devel"
+    steps:
+      - name: Install git
+        run: pacman -Sy --noconfirm git
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ./target/
+            build/
+          key: deps3-${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          name: id_rsa # optional
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          config: ${{ secrets.CONFIG }} # ssh_config; optional
+          if_key_exists: fail # replace / ignore / fail; optional (defaults to fail)
+      - name: install prerequisites
+        run: |
+          pacman -Sy --noconfirm  gcc openssl rustup openssh
+      - name: Create archive
+        run: |
+          mkdir -p build
+          git archive -o build/smoke-cloud-server.tar HEAD
+          cp run/PKGBUILD build/
+      - name: Build Arch package
+        run: |
+          cd build
+          useradd -m builder
+          cp /root/.ssh /home/builder/.ssh -r
+          chown -R builder:builder /home/builder/.ssh
+          chown -R builder:builder .
+          su builder -c "rustup install stable; rustup default stable; makepkg -f"
+      - name: Copy files
+        run: |
+          cd build
+          mkdir -p dist
+          cp *.zst dist
+      - uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --follow-symlinks
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "eu-west-2"
+          SOURCE_DIR: "build/dist"
+          DEST_DIR: "smoke-cloud-run/${{github.ref_name}}"
+
+
+build-rpm:
+    name: Build RPM
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container: ["fedora:35"]
+        fds-version:
+          - "5.5.3"
+          - "6.1.2"
+          - "6.2.0"
+          - "6.3.0"
+          - "6.3.1"
+          - "6.3.2"
+          - "6.4.0"
+          - "6.5.0"
+          - "6.5.1"
+          - "6.5.2"
+          - "6.5.3"
+          - "6.6.0"
+          - "6.7.0"
+          - "6.7.1"
+          - "6.7.3"
+          - "6.7.4"
+          - "6.7.5"
+          - "6.7.6"
+          - "6.7.7"
+          - "latest"
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add intel apt repo
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+          sudo apt-get update
+      - name: Install prerequisites
+        run: yum install -y git gcc procps kmod openssl-devel cargo rpmdevtools make
+      - run: yum install -y intel-basekit intel-hpckit
+      - name: Build RPM
+        run: |
+          zip fds.sh.zip fds.sh
+          cd ${{ matrix.fds-version }}
+          mkdir -p rpmbuild/SOURCES
+          cp backports.patch rpmbuild/SOURCES || true
+          cp ../fds.sh.zip rpmbuild/SOURCES
+          bash ../makerpm.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: FDS-RPMs
+          path: |
+            ${{ matrix.fds-version }}/rpmbuild/RPMS/*/*.rpm
+  build-deb:
+    name: Build deb
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        fds-version:
+          - "5.5.3"
+          - "6.1.2"
+          - "6.2.0"
+          - "6.3.0"
+          - "6.3.1"
+          - "6.3.2"
+          - "6.4.0"
+          - "6.5.0"
+          - "6.5.1"
+          - "6.5.2"
+          - "6.5.3"
+          - "6.6.0"
+          - "6.7.0"
+          - "6.7.1"
+          - "6.7.3"
+          - "6.7.4"
+          - "6.7.5"
+          - "6.7.6"
+          - "6.7.7"
+          - "latest"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add intel apt repo
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+          sudo apt-get update
+      - name: Install prerequisites
+        run: sudo apt-get install -y git gcc openssl make devscripts debhelper
+      - run: sudo apt-get install -y intel-basekit intel-hpckit
+      - name: Build deb
+        run: |
+          cd ${{ matrix.fds-version }}/deb
+          bash build_debian.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: FDS-DEBs
+          path: |
+            ${{ matrix.fds-version }}/deb/*.deb
+  build-arch:
+    name: Build Arch Linux package
+    if: "false"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container: ["archlinux:base-devel"]
+        fds-version:
+          - "5.5.3"
+          - "6.1.2"
+          - "6.2.0"
+          - "6.3.0"
+          - "6.3.1"
+          - "6.3.2"
+          - "6.4.0"
+          - "6.5.0"
+          - "6.5.1"
+          - "6.5.2"
+          - "6.5.3"
+          - "6.6.0"
+          - "6.7.0"
+          - "6.7.1"
+          - "6.7.3"
+          - "6.7.4"
+          - "6.7.5"
+          - "6.7.6"
+          - "6.7.7"
+          - "latest"
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: pacman -Sy --noconfirm wget git
+      - run: ./install-oneapi.sh
+      - name: Build Package
+        run: |
+          useradd builder
+          cd ${{ matrix.fds-version }}
+          chown -R builder:builder .
+          cp ../fds.sh .
+          su builder -c "makepkg -f"
+      - uses: actions/upload-artifact@v2
+        with:
+          name: FDS-Arch
+          path: |
+            ${{ matrix.fds-version }}/*.zst
