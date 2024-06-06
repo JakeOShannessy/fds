@@ -131,9 +131,9 @@ setup_win:
 .SUFFIXES: .f90 .o .obj
 
 .f90.o:
-	$(FCOMPL) -c $(FFLAGS) $<
+	$(FCOMPL) -c $(FFLAGS) -I/usr/lib64/gfortran/modules $<
 .f90.obj:
-	$(FCOMPL) -c $(FFLAGS) $<
+	$(FCOMPL) -c $(FFLAGS) -I/usr/lib64/gfortran/modules $<
 
 # Files which have OpenMP compiler directives are compiled using the FOPENMPFLAG and can be enabled/disabled on a per-file basis.
 
@@ -323,7 +323,7 @@ ompi_intel_osx_openmp_dv : setup $(obj_mpi)
 #*** GNU Compilers ***
 
 ompi_gnu_linux : FFLAGS = -m64 -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics $(GITINFOGNU) $(FFLAGSMKL_GNU_OPENMPI) $(GFORTRAN_OPTIONS)
-ompi_gnu_linux : LFLAGSMKL = $(LFLAGSMKL_GNU_OPENMPI)
+ompi_gnu_linux : LFLAGSMKL = $(LFLAGSMKL_GNU_OPENMPI) -L/usr/lib64 -ljsonfortran
 ompi_gnu_linux : FCOMPL = mpifort
 ompi_gnu_linux : FOPENMPFLAGS = -fopenmp
 ompi_gnu_linux : obj = fds_ompi_gnu_linux

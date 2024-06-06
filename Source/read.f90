@@ -24,7 +24,7 @@ USE THERMO_PROPS
 IMPLICIT NONE (TYPE,EXTERNAL)
 PRIVATE
 
-PUBLIC READ_DATA,READ_STOP,VERSION_INFO
+PUBLIC READ_DATA,READ_STOP,VERSION_INFO,PRINT_JSON
 
 CHARACTER(LABEL_LENGTH) :: ID,MB,DB,ODE_SOLVER
 CHARACTER(MESSAGE_LENGTH) :: MESSAGE,FYI
@@ -2893,7 +2893,7 @@ PRIMITIVE_LOOP: DO N1=1,N_SPECIES - N_COPY_PRIMITIVE
          WRITE(MESSAGE,'(A,I0,A)') 'ERROR: Species ',N1,' needs at least one polynomial temperature band.'
          CALL SHUTDOWN(MESSAGE) ; RETURN
       ENDIF
-      IF (SS%POLYNOMIAL=='NASA7') THEN 
+      IF (SS%POLYNOMIAL=='NASA7') THEN
          POLY_NUM = 7
       ELSE
          POLY_NUM = 9
@@ -4389,8 +4389,8 @@ NAMELIST /REAC/ A, A_TROE, A_LOW_PR, AIT_EXCLUSION_ZONE,AIT_EXCLUSION_ZONE_CTRL_
                 FUEL_RADCAL_ID,FYI,H,HCN_YIELD,HEAT_OF_COMBUSTION,HOC_COMPLETE,&
                 ID,IDEAL,LOWER_OXYGEN_LIMIT,N,N_S,N_SIMPLE_CHEMISTRY_REACTIONS,N_T, N_T_LOW_PR, NU,O,PRIORITY,RADIATIVE_FRACTION,&
                 RAMP_CHI_R,REAC_ATOM_ERROR,REAC_MASS_ERROR, REACTYPE, REVERSE,SOOT_YIELD,&
-                SPEC_ID_N_S,SPEC_ID_NU, T1_TROE, T2_TROE, T3_TROE, THIRD_BODY,THIRD_EFF_ID,THIRD_EFF  
-                
+                SPEC_ID_N_S,SPEC_ID_NU, T1_TROE, T2_TROE, T3_TROE, THIRD_BODY,THIRD_EFF_ID,THIRD_EFF
+
 TYPE(REACTION_TYPE),POINTER :: RN2=>NULL()
 
 ATOM_COUNTS = 0._EB
@@ -4556,10 +4556,10 @@ REAC_READ_LOOP: DO NR=1,N_REACTIONS
    RN%RAMP_CHI_R                = RAMP_CHI_R
    RN%SOOT_YIELD                = SOOT_YIELD
    RN%THIRD_BODY                = THIRD_BODY
-   
+
    IF (COMBUSTION_ODE_SOLVER>RK2_RICHARDSON .AND. REACTYPE== 'ARRHENIUS-TYPE' .AND. RN%THIRD_BODY) &
       REACTYPE='THREE-BODY-ARRHENIUS'
-   
+
    SELECT CASE (REACTYPE)
       CASE('FALLOFF-LINDEMANN')
          RN%REACTYPE = FALLOFF_LINDEMANN_TYPE
@@ -4592,8 +4592,8 @@ REAC_READ_LOOP: DO NR=1,N_REACTIONS
          RN%THIRD_BODY = .TRUE.
       CASE DEFAULT
          RN%REACTYPE = ARRHENIUS_TYPE
-   END SELECT     
-   
+   END SELECT
+
    IF (RN%RAMP_CHI_R/='null') CALL GET_RAMP_INDEX(RN%RAMP_CHI_R,'TIME',RN%RAMP_CHI_R_INDEX)
 
    IF (RN%A_IN<0._EB .AND. RN%E<0._EB .AND. .NOT.RN%REVERSE) THEN
@@ -4681,7 +4681,7 @@ REAC_READ_LOOP: DO NR=1,N_REACTIONS
       ALLOCATE(RN%SPEC_ID_NU_READ(RN%N_SMIX))
       RN%SPEC_ID_NU_READ = 'null'
       RN%SPEC_ID_NU_READ(1:RN%N_SMIX)=SPEC_ID_NU(1:RN%N_SMIX)
-      
+
       SUMNU = 0._EB
       DO NS = 1, RN%N_SMIX
          IF (NU(NS) .LT. 0._EB) THEN
@@ -4697,7 +4697,7 @@ REAC_READ_LOOP: DO NR=1,N_REACTIONS
 
       IF (RN%REACTYPE == FALLOFF_LINDEMANN_TYPE .OR. RN%REACTYPE == FALLOFF_TROE_TYPE) THEN
          RN%A_LOW_PR = RN%A_LOW_PR*(1000._EB)**(-SUMNU)
-      ENDIF   
+      ENDIF
    ELSE SIMPLE_IF
       RN%N_SMIX = 3
       RN%N_SPEC_READ = 0
@@ -4963,11 +4963,11 @@ REAC_LOOP: DO NR=1,N_REACTIONS
          CALL SHUTDOWN(MESSAGE) ; RETURN
       ENDIF
    ENDDO
-   
+
    RN%C0_EXP = SUM(NU_Y)
 
 
-   
+
    RN%N_SMIX_FR = 0._EB
    RN%N_SMIX_R = 0._EB
    DO NS=1,N_TRACKED_SPECIES
@@ -5046,7 +5046,7 @@ REAC_LOOP: DO NR=1,N_REACTIONS
          ENDDO
       ENDDO
    ENDIF
-   
+
    RN%N_SPEC=0
    DO NS=1,N_SPECIES
       IF (ABS(NU_Y(NS)) > TWO_EPSILON_EB) RN%N_SPEC = RN%N_SPEC + 1
@@ -5192,7 +5192,7 @@ REAC_LOOP: DO NR=1,N_REACTIONS
       ENDIF
    ENDDO
 
-   
+
    ! Set THIRD_BODY efficiencies
    IF (RN%N_THIRD>0) THEN
       ALLOCATE(RN%THIRD_EFF(N_SPECIES))
@@ -5226,7 +5226,7 @@ IF (TRIM(ODE_SOLVER)/='null') THEN
          N_FIXED_CHEMISTRY_SUBSTEPS = 1
 #ifndef WITH_SUNDIALS
          WRITE(MESSAGE,'(A)') "ERROR requesting CVODE_SOLVER, Sundials not installed."
-         CALL SHUTDOWN(MESSAGE) ; RETURN  
+         CALL SHUTDOWN(MESSAGE) ; RETURN
 #endif
          COMBUSTION_ODE_SOLVER = CVODE_SOLVER
          DO NS=1,N_TRACKED_SPECIES
@@ -5242,7 +5242,7 @@ IF (TRIM(ODE_SOLVER)/='null') THEN
                CALL SHUTDOWN(MESSAGE) ; RETURN
             ENDIF
             YP2ZZ(SPECIES_MIXTURE(NS)%SINGLE_SPEC_INDEX) = NS
-         ENDDO        
+         ENDDO
       CASE DEFAULT
          WRITE(MESSAGE,'(A)') 'ERROR(209): Name of ODE_SOLVER is not recognized.'
          CALL SHUTDOWN(MESSAGE) ; RETURN
@@ -16083,5 +16083,214 @@ DUMMY(1:N1) = HT3D_OBST(1:N1)
 CALL MOVE_ALLOC(DUMMY,HT3D_OBST)
 
 END SUBROUTINE REALLOCATE_HT3D_OBST
+
+SUBROUTINE PRINT_JSON
+   use,intrinsic :: iso_fortran_env, only: wp => real64
+   use :: json_module, rk => json_rk
+   USE DEVICE_VARIABLES, ONLY: DEVICE_TYPE,DEVICE,N_DEVC
+
+   INTEGER :: N, NM, NQ
+   TYPE (MESH_TYPE), POINTER :: M
+   TYPE (DEVICE_TYPE), POINTER :: DV
+   ! TYPE(SURFACE_TYPE),POINTER:: SF=>NULL()
+
+
+   type(json_core) :: json
+   type(json_value),pointer :: p, surfaces_obj, vents_obj, meshes_obj, obj, obj2, obj3, devices_obj
+
+   ! initialize the class
+   call json%initialize()
+
+   ! initialize the structure:
+   call json%create_object(p,'')
+
+   call json%add(p, 'chid', TRIM(CHID))
+
+   call json%add(p, 'ec_ll', EC_LL)
+   call json%add(p, 'visibility_factor', VISIBILITY_FACTOR)
+
+   call json%create_object(obj,'dump')
+   call json%add(p, obj)
+   call json%add(obj, 'nframes', NFRAMES)
+   ! DT_BNDF      = -1._EB
+   ! DT_CPU       =  HUGE(EB)
+   ! DT_CTRL      = -1._EB
+   ! DT_DEVC      = -1._EB
+   ! DT_FLUSH     = -1._EB
+   ! DT_GEOM      =  HUGE(EB)
+   ! DT_HRR       = -1._EB
+   ! DT_HVAC      = -1._EB
+   ! DT_ISOF      = -1._EB
+   ! DT_MASS      = -1._EB
+   ! DT_PART      = -1._EB
+   ! DT_PL3D      =  HUGE(EB)
+   ! IF (DT_PL3D_SPE /= HUGE(EB)) THEN
+   !    call json%add(obj, 'dt_pl3d', DT_PL3D)
+   ! ENDIF
+
+   ! DT_PROF      = -1._EB
+   ! DT_RADF      =  HUGE(EB)
+   ! DT_RESTART   =  HUGE(EB)
+   ! DT_SLCF      = -1._EB
+   ! IF (DT_SLCF /= -1._EB) THEN
+   !    call json%add(obj, 'dt_slcf', DT_PL3D)
+   ! ENDIF
+   ! DT_SL3D      =  (T_END-T_BEGIN)/5._EB
+   ! DT_SMOKE3D   = -1._EB
+   ! DT_UVW       =  HUGE(EB)
+   ! DT_TMP       =  HUGE(EB)
+   ! DT_SPEC      =  HUGE(EB)
+
+   call json%create_object(obj,'time')
+   call json%add(p, obj)
+   call json%add(obj, 'begin', T_BEGIN)
+   call json%add(obj, 'end', T_END)
+   nullify(obj)
+
+   ! add an "surfaces" object to the structure:
+   call json%create_array(surfaces_obj,'surfaces')
+   call json%add(p, surfaces_obj) !add it to the root
+
+   PRINT_SURF_LOOP: DO N=0,N_SURF
+      SF => SURFACE(N)
+      call json%create_object(obj,'surface')
+      call json%add(surfaces_obj, obj)
+      call json%add(obj, 'index', N)
+      call json%add(obj, 'id', TRIM(SF%ID))
+      IF (SF%HRRPUA /= 0.0) THEN
+         call json%add(obj, 'hrrpua', SF%HRRPUA)
+      ENDIF
+      IF (SF%VOLUME_FLOW /= 0.0) THEN
+         call json%add(obj, 'volume_flow', SF%VOLUME_FLOW)
+      ENDIF
+      IF (SF%VEL /= 0.0) THEN
+         call json%add(obj, 'vel', SF%VEL)
+      ENDIF
+      if (SF%TMP_FRONT /= -1._EB) THEN
+         call json%add(obj, 'tmp_front', SF%TMP_FRONT)
+      ENDIF
+      IF ( SF%RAMP(TIME_HEAT)%TAU /= TAU_DEFAULT) THEN
+         call json%add(obj, 'tau_q', SF%RAMP(TIME_HEAT)%TAU)
+      ENDIF
+      IF (LEN_TRIM(SF%FYI) /= 0 .AND. TRIM(SF%FYI) /= 'null') THEN
+         call json%add(obj, 'fyi', TRIM(SF%FYI))
+      ENDIF
+      nullify(obj)
+   ENDDO PRINT_SURF_LOOP
+
+   call json%create_array(meshes_obj,'meshes')
+   call json%add(p, meshes_obj)
+
+   PRINT_MESH_LOOP: DO NM=1,NMESHES
+      M => MESHES(NM)
+      call json%create_object(obj,'mesh')
+      call json%add(meshes_obj, obj)
+      call json%add(obj, 'index', NM)
+      call json%add(obj, 'id', TRIM(MESH_NAME(NM)))
+
+      call json%create_object(obj3,'ijk')
+      call json%add(obj, obj3)
+      call json%add(obj3, 'i', M%IBAR)
+      call json%add(obj3, 'j', M%JBAR)
+      call json%add(obj3, 'k', M%KBAR)
+      nullify(obj3)
+
+      if (M%N_VENT > 0) THEN
+         call json%create_array(vents_obj,'vents')
+         call json%add(obj, vents_obj)
+         PRINT_VENT_LOOP: DO N=1,M%N_VENT
+            VT => MESHES(NM)%VENTS(N)
+            call json%create_object(obj2,'vent')
+            call json%add(vents_obj, obj2)
+            call json%add(obj2, 'index', N)
+            call json%add(obj2, 'id', TRIM(VT%ID))
+            call json%add(obj2, 'surface', TRIM(SURFACE(VT%SURF_INDEX)%ID))
+            call json%add(obj2, 'devc_id', TRIM(VT%DEVC_ID))
+            call json%add(obj2, 'ctrl_id', TRIM(VT%CTRL_ID))
+
+            call json%create_object(obj3,'dimensions')
+            call json%add(obj2, obj3)
+            call json%add(obj3, 'x1', VT%X1)
+            call json%add(obj3, 'x2', VT%X2)
+            call json%add(obj3, 'y1', VT%Y1)
+            call json%add(obj3, 'y2', VT%Y2)
+            call json%add(obj3, 'z1', VT%Z1)
+            call json%add(obj3, 'z2', VT%Z2)
+            nullify(obj3)
+
+            call json%add(obj2, 'fds_area', VT%FDS_AREA)
+
+            nullify(obj2)
+         ENDDO  PRINT_VENT_LOOP
+         nullify(vents_obj)
+      ENDIF
+      nullify(obj)
+   ENDDO PRINT_MESH_LOOP
+   nullify(meshes_obj)
+
+   call json%create_array(devices_obj,'devices')
+   call json%add(p, devices_obj)
+
+   PRINT_DEVC_LOOP: DO N=1,N_DEVC
+      DV => DEVICE(N)
+      call json%create_object(obj,'device')
+      call json%add(devices_obj, obj)
+      call json%add(obj, 'index', N)
+      call json%add(obj, 'id', TRIM(DV%ID))
+      call json%add(obj, 'label', TRIM(DV%SMOKEVIEW_LABEL))
+      call json%add(obj, 'spatial_statistic', TRIM(DV%SPATIAL_STATISTIC))
+      call json%add(obj, 'spec_id', TRIM(DV%SPEC_ID))
+      call json%add(obj, 'prop_id', TRIM(DV%PROP_ID))
+      call json%add(obj, 'mesh',  DV%MESH)
+      call json%add(obj, 'setpoint',  DV%SETPOINT)
+
+      call json%create_object(obj3,'dimensions')
+      call json%add(obj, obj3)
+      call json%add(obj3, 'x1', DV%X1)
+      call json%add(obj3, 'x2', DV%X2)
+      call json%add(obj3, 'y1', DV%Y1)
+      call json%add(obj3, 'y2', DV%Y2)
+      call json%add(obj3, 'z1', DV%Z1)
+      call json%add(obj3, 'z2', DV%Z2)
+      nullify(obj3)
+
+      call json%create_object(obj3,'location')
+      call json%add(obj, obj3)
+      call json%add(obj3, 'x', DV%X)
+      call json%add(obj3, 'y', DV%Y)
+      call json%add(obj3, 'z', DV%Z)
+      nullify(obj3)
+
+      call json%create_array(obj2,'quantities')
+      call json%add(obj, obj2)
+      DO NQ=1,DV%N_QUANTITY
+         call json%create_string(obj3,TRIM(DV%QUANTITY(NQ)),'quantity')
+         call json%add(obj2, obj3)
+         nullify(obj3)
+      ENDDO
+      nullify(obj2)
+
+      call json%create_array(obj2,'points')
+      call json%add(obj, obj2)
+      DO NQ=1,DV%N_POINTS
+         call json%create_object(obj3,'point')
+         call json%add(obj2, obj3)
+         call json%add(obj3, 'i', DV%I(NQ))
+         call json%add(obj3, 'j', DV%J(NQ))
+         call json%add(obj3, 'k', DV%K(NQ))
+         nullify(obj3)
+      ENDDO
+      nullify(obj2)
+
+      nullify(obj)
+   ENDDO PRINT_DEVC_LOOP
+   nullify(devices_obj)
+
+   ! write the file:
+   call json%print(p,'fds.json')
+
+   !cleanup:
+   call json%destroy(p)
+END SUBROUTINE PRINT_JSON
 
 END MODULE READ_INPUT
