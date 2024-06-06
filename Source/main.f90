@@ -75,6 +75,25 @@ LOGICAL, ALLOCATABLE, DIMENSION(:)        :: LOGICAL_BUFFER_EXTERNAL
 REAL(EB), ALLOCATABLE, DIMENSION(:)       :: REAL_BUFFER_DUCT,REAL_BUFFER_EXTERNAL
 REAL(EB), ALLOCATABLE, DIMENSION(:,:)     :: REAL_BUFFER_10,REAL_BUFFER_MASS,REAL_BUFFER_HVAC,REAL_BUFFER_QM,REAL_BUFFER_20
 
+integer :: num_args, ix, json_out_i
+character(len=12), dimension(:), allocatable :: args
+CHARACTER(FN_LENGTH) :: JSON_OUTPUT=''
+
+num_args = command_argument_count()
+allocate(args(num_args))
+
+json_out_i = -1
+do ix = 1, num_args
+    call get_command_argument(ix,args(ix))
+   PRINT*, args(ix)
+   if (args(ix) == "--json") then
+      json_out_i = ix+1
+   endif
+end do
+JSON_OUTPUT = args(json_out_i)
+PRINT*, "JSON_OUTPUT", JSON_OUTPUT
+
+
 ! Initialize OpenMP
 
 CALL OPENMP_INIT
@@ -413,7 +432,9 @@ IF (RESTART) THEN
    CALL STOP_CHECK(1)
 ENDIF
 
-CALL PRINT_JSON
+IF (LEN(JSON_OUTPUT) > 0) THEN
+   CALL PRINT_JSON(JSON_OUTPUT)
+ENDIF
 
 CALL END_FDS
 
