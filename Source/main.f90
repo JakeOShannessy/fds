@@ -43,6 +43,7 @@ USE SOOT_ROUTINES, ONLY: CALC_AGGLOMERATION
 USE GLOBMAT_SOLVER, ONLY : GLMAT_SOLVER_SETUP, GLMAT_SOLVER, COPY_H_OMESH_TO_MESH, &
                            FINISH_GLMAT_SOLVER,PRESSURE_SOLVER_CHECK_RESIDUALS_U
 USE LOCMAT_SOLVER, ONLY : ULMAT_SOLVER,ULMAT_SOLVER_SETUP,FINISH_ULMAT_SOLVER
+USE JSON_FORMAT, ONLY: PRINT_JSON
 
 IMPLICIT NONE (TYPE,EXTERNAL)
 
@@ -73,6 +74,25 @@ INTEGER :: N_REQ=0,N_REQ1=0,N_REQ2=0,N_REQ3=0,N_REQ4=0,N_REQ5=0,N_REQ7=0,N_REQ6=
 CHARACTER(MPI_MAX_PROCESSOR_NAME) :: PNAME
 REAL(EB), ALLOCATABLE, DIMENSION(:)       :: REAL_BUFFER_DUCT
 REAL(EB), ALLOCATABLE, DIMENSION(:,:)     :: REAL_BUFFER_10,REAL_BUFFER_MASS,REAL_BUFFER_HVAC,REAL_BUFFER_QM,REAL_BUFFER_20
+
+integer :: num_args, ix, json_out_i
+character(len=12), dimension(:), allocatable :: args
+CHARACTER(FN_LENGTH) :: JSON_OUTPUT_PATH=''
+LOGICAL :: OUTPUT_JSON=.FALSE.
+
+num_args = command_argument_count()
+allocate(args(num_args))
+
+json_out_i = -1
+do ix = 1, num_args
+   call get_command_argument(ix,args(ix))
+   if (args(ix) == "--json") then
+      json_out_i = ix+1
+      OUTPUT_JSON = .TRUE.
+   endif
+end do
+JSON_OUTPUT_PATH = args(json_out_i)
+
 
 ! Initialize OpenMP
 
@@ -115,6 +135,15 @@ CALL GET_INFO (REVISION,REVISION_DATE,COMPILE_DATE)
 
 CALL READ_DATA(DT)
 CALL STOP_CHECK(1)
+
+! If requested, output input information to JSON, either to a file or stdout
+IF (OUTPUT_JSON) THEN
+   IF (MY_RANK==0) WRITE(LU_ERR,'(A)') ' Outputting JSON info...'
+   IF (MY_RANK==0) CALL PRINT_JSON(JSON_OUTPUT_PATH)
+   STOP_STATUS = SETUP_ONLY_STOP
+   call EXIT(0)
+   CALL STOP_CHECK(1)
+ENDIF
 
 IF (MY_RANK==0) THEN
    CALL WRITE_SUMMARY_INFO(LU_ERR)

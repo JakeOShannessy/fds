@@ -112,7 +112,7 @@ endif # OS test
 endif # MKLROOT test
 
 obj_mpi = prec.o cons.o prop.o devc.o type.o data.o mesh.o func.o gsmv.o smvv.o rcal.o turb.o soot.o \
-          pois.o geom.o ccib.o radi.o part.o vege.o ctrl.o hvac.o mass.o \
+          pois.o geom.o ccib.o radi.o part.o vege.o ctrl.o hvac.o mass.o json.o \
           wall.o fire.o velo.o pres.o init.o dump.o read.o divg.o main.o
 
 objwin_mpi = $(obj_mpi:.o=.obj)
@@ -132,9 +132,9 @@ setup_win:
 .SUFFIXES: .f90 .o .obj
 
 .f90.o:
-	$(FCOMPL) -c $(FFLAGS) $<
+	$(FCOMPL) -c $(FFLAGS) -I/usr/lib64/gfortran/modules $<
 .f90.obj:
-	$(FCOMPL) -c $(FFLAGS) $<
+	$(FCOMPL) -c $(FFLAGS) -I/usr/lib64/gfortran/modules $<
 
 # Files which have OpenMP compiler directives are compiled using the FOPENMPFLAG and can be enabled/disabled on a per-file basis.
 
@@ -168,7 +168,7 @@ impi_intel_win : FFLAGS = /Qipo /O2 /I$(MPIINCLUDE) /wrap-margin- $(GITINFO) $(I
 impi_intel_win : FCOMPL = $(I_IFORT)
 impi_intel_win : obj = fds_impi_intel_win
 impi_intel_win : setup_win $(objwin_mpi)
-	$(FCOMPL) -o $(obj) $(FFLAGS) /F1000000000 $(objwin_mpi) $(MPILIB) $(LFLAGSMKL_INTEL)
+	$(FCOMPL) -o $(obj) $(FFLAGS) /F1000000000 $(objwin_mpi) $(MPILIB) $(LFLAGSMKL_INTEL) jsonfortran.lib
 
 impi_intel_win_vt : MPILIB = "$(IMPI_RELEASE_ROOT)\impi.lib"
 impi_intel_win_vt : MPIINCLUDE = "$(IMPI_INCLUDE)"
@@ -325,7 +325,7 @@ ompi_intel_osx_openmp_dv : setup $(obj_mpi)
 #*** GNU Compilers ***
 
 ompi_gnu_linux : FFLAGS = -m64 -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics $(GITINFOGNU) $(GNU_COMPINFO) $(FFLAGSMKL_GNU_OPENMPI) $(GFORTRAN_OPTIONS)
-ompi_gnu_linux : LFLAGSMKL = $(LFLAGSMKL_GNU_OPENMPI)
+ompi_gnu_linux : LFLAGSMKL = $(LFLAGSMKL_GNU_OPENMPI) -L/usr/lib64 -ljsonfortran
 ompi_gnu_linux : FCOMPL = mpifort
 ompi_gnu_linux : FOPENMPFLAGS = -fopenmp
 ompi_gnu_linux : obj = fds_ompi_gnu_linux
