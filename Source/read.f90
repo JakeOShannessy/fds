@@ -16084,12 +16084,12 @@ CALL MOVE_ALLOC(DUMMY,HT3D_OBST)
 
 END SUBROUTINE REALLOCATE_HT3D_OBST
 
-SUBROUTINE PRINT_JSON(JSON_OUTPUT)
+SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
    use,intrinsic :: iso_fortran_env, only: wp => real64
    use :: json_module, rk => json_rk
    USE DEVICE_VARIABLES, ONLY: DEVICE_TYPE,DEVICE,N_DEVC
 
-   CHARACTER(FN_LENGTH), INTENT(IN)  :: JSON_OUTPUT
+   CHARACTER(FN_LENGTH), INTENT(IN)  :: JSON_OUTPUT_PATH
    INTEGER :: N, NM, NQ
    TYPE (MESH_TYPE), POINTER :: M
    TYPE (DEVICE_TYPE), POINTER :: DV
@@ -16288,7 +16288,13 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT)
    nullify(devices_obj)
 
    ! write the file:
-   call json%print(p,JSON_OUTPUT)
+   if (JSON_OUTPUT_PATH == '-') then
+      IF (MY_RANK==0) WRITE(LU_ERR,'(A)') ' Outputting JSON info to stdout'
+      call json%print(p)
+   else
+      IF (MY_RANK==0) WRITE(LU_ERR,'(A,A)') ' Outputting JSON info to ', JSON_OUTPUT_PATH
+      call json%print(p,JSON_OUTPUT_PATH)
+   endif
 
    !cleanup:
    call json%destroy(p)

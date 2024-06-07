@@ -77,21 +77,21 @@ REAL(EB), ALLOCATABLE, DIMENSION(:,:)     :: REAL_BUFFER_10,REAL_BUFFER_MASS,REA
 
 integer :: num_args, ix, json_out_i
 character(len=12), dimension(:), allocatable :: args
-CHARACTER(FN_LENGTH) :: JSON_OUTPUT=''
+CHARACTER(FN_LENGTH) :: JSON_OUTPUT_PATH=''
+LOGICAL :: OUTPUT_JSON=.FALSE.
 
 num_args = command_argument_count()
 allocate(args(num_args))
 
 json_out_i = -1
 do ix = 1, num_args
-    call get_command_argument(ix,args(ix))
-   PRINT*, args(ix)
+   call get_command_argument(ix,args(ix))
    if (args(ix) == "--json") then
       json_out_i = ix+1
+      OUTPUT_JSON = .TRUE.
    endif
 end do
-JSON_OUTPUT = args(json_out_i)
-PRINT*, "JSON_OUTPUT", JSON_OUTPUT
+JSON_OUTPUT_PATH = args(json_out_i)
 
 
 ! Initialize OpenMP
@@ -432,11 +432,15 @@ IF (RESTART) THEN
    CALL STOP_CHECK(1)
 ENDIF
 
-IF (LEN(JSON_OUTPUT) > 0) THEN
-   CALL PRINT_JSON(JSON_OUTPUT)
+! If requested, output input information to JSON, either to a file or stdout
+IF (OUTPUT_JSON) THEN
+   ! IF (MY_RANK==0) CALL INITIALIZE_DIAGNOSTIC_FILE(DT)
+   IF (MY_RANK==0) WRITE(LU_ERR,'(A)') ' Outputting JSON info...'
+   IF (MY_RANK==0) CALL PRINT_JSON(JSON_OUTPUT_PATH)
+   STOP_STATUS = SETUP_ONLY_STOP
+   call EXIT(0)
+   CALL STOP_CHECK(1)
 ENDIF
-
-CALL END_FDS
 
 ! Initialize output clocks
 
