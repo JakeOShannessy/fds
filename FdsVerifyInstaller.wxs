@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<?define ProductVersion = "1.10.2"?>
+<?define ProductVersion = "1.10.4"?>
 <?define ProductUpgradeCode = "44a012db-1481-49ef-a67d-6961aa465c2c"?>
 
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
@@ -42,7 +42,8 @@
                             Win64="yes">
                             <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]" Permanent="yes"
                                 Part="last" Action="set" System="no" />
-                            <File Id='FdsVerifyScriptCMD' Name='fds-verify.cmd' Source='fds-verify.cmd'
+                            <File Id='FdsVerifyScriptCMD' Name='fds-verify.cmd'
+                                Source='fds-verify.cmd'
                                 KeyPath='yes'>
                             </File>
                         </Component>
@@ -58,6 +59,10 @@
                                 Win64="yes">
                                 <File Id='jsonfortran' Name='jsonfortran.dll'
                                     Source='Build/impi_intel_win/jsonfortran.dll'></File>
+                                <File Id='impi' Name='impi.dll'
+                                    Source='C:/Program Files (x86)/Intel/oneAPI/mpi/latest/bin/release/impi.dll'></File>
+                                <File Id='libfabric' Name='libfabric.dll'
+                                    Source='C:/Program Files (x86)/Intel/oneAPI/mpi/2021.9.0/libfabric/bin/libfabric.dll'></File>
                             </Component>
                         </Directory>
                     </Directory>

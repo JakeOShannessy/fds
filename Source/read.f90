@@ -16196,6 +16196,16 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
       call json%add(obj3, 'k', M%KBAR)
       nullify(obj3)
 
+      call json%create_object(obj3,'dimensions')
+      call json%add(obj, obj3)
+      call json%add(obj3, 'x1', M%XS)
+      call json%add(obj3, 'x2', M%XF)
+      call json%add(obj3, 'y1', M%YS)
+      call json%add(obj3, 'y2', M%YF)
+      call json%add(obj3, 'z1', M%ZS)
+      call json%add(obj3, 'z2', M%ZF)
+      nullify(obj3)
+
       if (M%N_VENT > 0) THEN
          call json%create_array(vents_obj,'vents')
          call json%add(obj, vents_obj)
