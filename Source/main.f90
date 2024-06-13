@@ -136,6 +136,16 @@ CALL GET_INFO (REVISION,REVISION_DATE,COMPILE_DATE)
 CALL READ_DATA(DT)
 CALL STOP_CHECK(1)
 
+! If requested, output input information to JSON, either to a file or stdout
+IF (OUTPUT_JSON) THEN
+   ! IF (MY_RANK==0) CALL INITIALIZE_DIAGNOSTIC_FILE(DT)
+   IF (MY_RANK==0) WRITE(LU_ERR,'(A)') ' Outputting JSON info...'
+   IF (MY_RANK==0) CALL PRINT_JSON(JSON_OUTPUT_PATH)
+   STOP_STATUS = SETUP_ONLY_STOP
+   call EXIT(0)
+   CALL STOP_CHECK(1)
+ENDIF
+
 IF (MY_RANK==0) THEN
    CALL WRITE_SUMMARY_INFO(LU_ERR,.TRUE.)
    WRITE(LU_ERR,'(/A,A)')     ' Job TITLE        : ',TRIM(TITLE)
@@ -429,16 +439,6 @@ IF (RESTART) THEN
       IF (MY_RANK==0) WRITE(LU_ERR,*) 'ERROR: RESTART initial time equals T_END'
    ENDIF
    IF (CC_IBM) CALL INIT_CUTCELL_DATA(T,DT,FIRST_CALL=.FALSE.)  ! Init centroid data (rho,zz) on cut-cells and cut-faces.
-   CALL STOP_CHECK(1)
-ENDIF
-
-! If requested, output input information to JSON, either to a file or stdout
-IF (OUTPUT_JSON) THEN
-   ! IF (MY_RANK==0) CALL INITIALIZE_DIAGNOSTIC_FILE(DT)
-   IF (MY_RANK==0) WRITE(LU_ERR,'(A)') ' Outputting JSON info...'
-   IF (MY_RANK==0) CALL PRINT_JSON(JSON_OUTPUT_PATH)
-   STOP_STATUS = SETUP_ONLY_STOP
-   call EXIT(0)
    CALL STOP_CHECK(1)
 ENDIF
 
