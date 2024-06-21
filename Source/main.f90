@@ -77,7 +77,7 @@ REAL(EB), ALLOCATABLE, DIMENSION(:,:)     :: REAL_BUFFER_10,REAL_BUFFER_MASS,REA
 
 integer :: num_args, ix, json_out_i
 character(len=12), dimension(:), allocatable :: args
-CHARACTER(FN_LENGTH) :: JSON_OUTPUT_PATH=''
+CHARACTER(2048) :: JSON_OUTPUT_PATH=''
 LOGICAL :: OUTPUT_JSON=.FALSE.
 
 num_args = command_argument_count()
