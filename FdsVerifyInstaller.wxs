@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?define ProductVersion = "1.12.0"?>
+<?define ProductUpgradeCode = "44a012db-1481-49ef-a67d-6961aa465c2c"?>
+
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+    <Product Name='FDS Verify'
+        Id='*'
+        UpgradeCode="$(var.ProductUpgradeCode)"
+        Language='1033'
+        Version='$(var.ProductVersion)'
+        Manufacturer='Smoke Cloud'>
+        <Package Id='*'
+            InstallScope='perUser'
+            InstallPrivileges='limited'
+            Keywords='Installer'
+            Description="FDS Verify Installer"
+            Comments='A modified FDS with the ability to output JSON.'
+            Manufacturer='Smoke Cloud'
+            InstallerVersion='200'
+            Languages='1033'
+            Platform='x64'
+            Compressed='yes' />
+        <!-- <Condition Message="You need to be an administrator to install this
+        product.">Privileged</Condition> -->
+        <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' />
+        <Property Id='DiskPrompt' Value="FDS Verify Installer" />
+        <Upgrade Id="$(var.ProductUpgradeCode)">
+            <UpgradeVersion Minimum="$(var.ProductVersion)" OnlyDetect="yes"
+                Property="NEWERVERSIONDETECTED" />
+            <UpgradeVersion Minimum="0.0.0" Maximum="$(var.ProductVersion)" IncludeMinimum="yes"
+                IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED" />
+        </Upgrade>
+        <Condition Message="A newer version of this software is already installed.">NOT
+            NEWERVERSIONDETECTED</Condition>
+        <Property Id="ALLUSERS" Secure="yes" Value="2" />
+        <Property Id="MSIINSTALLPERUSER" Secure="yes" Value="1" />
+        <Directory Id='TARGETDIR' Name='SourceDir'>
+            <Directory Id='ProgramFiles64Folder' Name='PFiles'>
+                <Directory Id='Fireng' Name='Fireng'>
+                    <Directory Id='INSTALLDIR' Name='FDS Verify'>
+                        <Component Id='FdsVerifyScript' Guid='021a625b-fb21-4d2e-bea8-c27af349a400'
+                            Win64="yes">
+                            <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]" Permanent="yes"
+                                Part="last" Action="set" System="no" />
+                            <File Id='FdsVerifyScriptCMD' Name='fds-verify.cmd'
+                                Source='fds-verify.cmd'
+                                KeyPath='yes'>
+                            </File>
+                        </Component>
+                        <Directory Id='BINDIR' Name='bin'>
+                            <Component Id='FdsVerifyComponent'
+                                Guid='cb6c1bd1-4f6d-4ce0-adb4-8bdc935d6f88' Win64="yes">
+                                <File Id='FdsVerifyEXE' Name='fds-verify.exe'
+                                    Source='dist/bin/fds.exe'
+                                    KeyPath='yes'>
+                                </File>
+                            </Component>
+                            <Component Id='CommonRender' Guid='c9eb176c-5dbb-46f4-b0bd-c81e48de8055'
+                                Win64="yes">
+                                <!-- <File Id='jsonfortran' Name='jsonfortran.dll'
+                                    Source='Build/impi_intel_win/jsonfortran.dll'></File> -->
+                                <File Id='impi' Name='impi.dll'
+                                    Source='C:/Program Files (x86)/Intel/oneAPI/mpi/latest/bin/impi.dll'></File>
+                                <File Id='libifcoremd' Name='libifcoremd.dll'
+                                    Source='C:/Program Files (x86)/Intel/oneAPI/2024.2/bin/libifcoremd.dll'></File>
+                                <File Id='libmmd' Name='libmmd.dll'
+                                    Source='C:/Program Files (x86)/Intel/oneAPI/2024.2/bin/libmmd.dll'></File>
+                                <File Id='svml_dispmd' Name='svml_dispmd.dll'
+                                    Source='C:/Program Files (x86)/Intel/oneAPI/2024.2/bin/svml_dispmd.dll'></File>
+                                <File Id='libfabric' Name='libfabric.dll'
+                                    Source='C:/Program Files (x86)/Intel/oneAPI/mpi/2021.9.0/libfabric/bin/libfabric.dll'></File>
+                            </Component>
+                        </Directory>
+                    </Directory>
+                </Directory>
+            </Directory>
+        </Directory>
+        <InstallExecuteSequence>
+            <RemoveExistingProducts After="InstallValidate" />
+        </InstallExecuteSequence>
+        <Feature Id='SMVLuaFeature' Level='1'>
+            <ComponentRef Id='FdsVerifyScript' />
+            <ComponentRef Id='FdsVerifyComponent' />
+            <ComponentRef Id='CommonRender' />
+        </Feature>
+    </Product>
+</Wix>

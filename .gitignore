@@ -102,3 +102,8 @@ Verification/Timing_Benchmarks/t*.fds
 
 .vscode/
 cbuild/
+*.wixobj
+*.wixpdb
+*.msi
+dist/
+dist-debug/
