@@ -47,8 +47,11 @@ add_executable(fds
     Source/divg.f90
 )
 
-# target_compile_options(fds PRIVATE -D_WIN32 /Qipo /O2 /I$(MPIINCLUDE) /wrap-margin- $(GITINFO) $(FFLAGSMKL_INTEL))
-target_compile_options(fds PRIVATE -m64 -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics -cpp   -DBUILDDATE_PP="BUILD_DATE"  )
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(fds PRIVATE -m64 -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics -cpp   -DBUILDDATE_PP="BUILD_DATE"  )
+elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" OR CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
+    # target_compile_options(fds PRIVATE -D_WIN32 /Qipo /O2  /wrap-margin-   -DBUILDDATE_PP="BUILD_DATE" )
+endif()
 target_include_directories(fds PRIVATE .)
 target_link_libraries(fds PRIVATE MPI::MPI_Fortran)
 
@@ -63,9 +66,9 @@ else()
     FetchContent_Declare(
         jsonfortran
         GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
-        GIT_TAG        1147599ac31dbd4a23bbaccd8492221c8b3cd488
+        GIT_TAG        3ab8f98209871875325c6985dd0e50085d1c82c2
     )
     FetchContent_MakeAvailable(jsonfortran)
     add_dependencies(fds jsonfortran-static)
-    target_link_libraries(fds PRIVATE jsonfortran)
+    target_link_libraries(fds PRIVATE jsonfortran-static)
 endif()
