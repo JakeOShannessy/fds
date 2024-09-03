@@ -7,19 +7,19 @@ _default:
 
 # Run the tests
 test:
-    ctest --test-dir cbuild -C Debug
+    ctest --test-dir cbuild
 
 # Build the debug binaries
 build:
     cmake -B cbuild -DCMAKE_BUILD_TYPE=Debug -G Ninja
-    cmake --build cbuild --config Debug -j6 -v
-    cmake --install cbuild --config Debug --prefix dist-debug
+    cmake --build cbuild -j6
+    cmake --install cbuild --prefix dist-debug
 
 # Build the release binaries
 build-release:
     cmake -B cbuild -DCMAKE_BUILD_TYPE=Release -G Ninja
-    cmake --build cbuild --config Release -v -j6
-    cmake --install cbuild --config Release --prefix dist
+    cmake --build cbuild -v -j6
+    cmake --install cbuild --prefix dist
 
 # Build release and create MSI package
 package-windows:
