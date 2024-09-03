@@ -67,9 +67,15 @@ else()
         jsonfortran
         GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
         GIT_TAG        3ab8f98209871875325c6985dd0e50085d1c82c2
-    )
+        )
+    set( ENABLE_TESTS  OFF CACHE INTERNAL "Turn off json-fortran tests")
     FetchContent_MakeAvailable(jsonfortran)
     add_dependencies(fds jsonfortran-static)
     target_link_libraries(fds PRIVATE jsonfortran-static)
 endif()
 install(TARGETS fds)
+
+
+include(CTest)
+enable_testing()
+add_subdirectory(Tests)
