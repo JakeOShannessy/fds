@@ -12,7 +12,7 @@ test:
 # Build the debug binaries
 build:
     cmake -B cbuild -DCMAKE_BUILD_TYPE=Debug -G Ninja
-    cmake --build cbuild -j6
+    cmake --build cbuild -j6 --verbose
     cmake --install cbuild --prefix dist-debug
 
 # Build the release binaries

@@ -1,15 +1,13 @@
-cmake_minimum_required ( VERSION 3.24 FATAL_ERROR )
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
-project (
+project(
     fds
     VERSION 8.5.2
     LANGUAGES Fortran
 )
-enable_language ( Fortran )
+enable_language(Fortran)
 
 find_package(MPI REQUIRED)
-
-
 
 add_executable(fds
     Source/main.f90
@@ -55,7 +53,6 @@ endif()
 target_include_directories(fds PRIVATE .)
 target_link_libraries(fds PRIVATE MPI::MPI_Fortran)
 
-
 if ( _json-fortran_FOUND)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(json-fortran REQUIRED IMPORTED_TARGET json-fortran)
@@ -68,7 +65,7 @@ else()
         GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
         GIT_TAG        3ab8f98209871875325c6985dd0e50085d1c82c2
         )
-    set( ENABLE_TESTS  OFF CACHE INTERNAL "Turn off json-fortran tests")
+    set(ENABLE_TESTS OFF CACHE INTERNAL "Turn off json-fortran tests")
     FetchContent_MakeAvailable(jsonfortran)
     add_dependencies(fds jsonfortran-static)
     target_link_libraries(fds PRIVATE jsonfortran-static)
