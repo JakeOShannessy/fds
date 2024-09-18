@@ -6,6 +6,7 @@ project(
     LANGUAGES Fortran
 )
 enable_language(Fortran)
+include(FetchContent)
 
 find_package(MPI REQUIRED)
 
@@ -45,21 +46,32 @@ add_executable(fds
     Source/divg.f90
 )
 
+# BUILD_DATE := $(shell date "+%b %d, %Y  %T")
+# GITINFO_BASE=-DGITHASH_PP=\"$(GIT_HASH)$(GIT_STAT)-$(GIT_BRANCH)\" -DGITDATE_PP=\""$(GIT_DATE)\""
+# GITINFOGNU=-cpp $(GITINFO_BASE) -DBUILDDATE_PP=\""$(BUILD_DATE)\""
+set(BUILD_DATE "BUILD_DATE")
+
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(fds PRIVATE -m64 -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics -cpp   -DBUILDDATE_PP="BUILD_DATE"  )
+    target_compile_options(fds PRIVATE -m64 -O2 -std=f2018)
+    target_compile_options(fds PRIVATE -frecursive -ffpe-summary=none -fall-intrinsics)
+    target_compile_options(fds PRIVATE -cpp -DBUILDDATE_PP="${BUILD_DATE}")
+    # target_compile_options(fds PRIVATE -DGITHASH_PP="$(GIT_HASH)$(GIT_STAT)-$(GIT_BRANCH)" -DGITDATE_PP="$(GIT_DATE)")
 elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" OR CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
     # target_compile_options(fds PRIVATE -D_WIN32 /Qipo /O2  /wrap-margin-   -DBUILDDATE_PP="BUILD_DATE" )
 endif()
 target_include_directories(fds PRIVATE .)
 target_link_libraries(fds PRIVATE MPI::MPI_Fortran)
 
-if ( _json-fortran_FOUND)
+
+if (NOT WIN32)
+    # On non-Windows platforms use the system version of json-fortran
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(json-fortran REQUIRED IMPORTED_TARGET json-fortran)
     target_link_libraries(fds PRIVATE PkgConfig::json-fortran)
     target_include_directories(fds PRIVATE /usr/lib64/gfortran/modules)
 else()
-    include(FetchContent)
+    # There are currently issues with the version fo json-fortran provided by
+    # vcpkg, therefore we fetch and build json-fortran ourselves.
     FetchContent_Declare(
         jsonfortran
         GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
