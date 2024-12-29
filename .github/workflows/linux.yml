@@ -39,18 +39,32 @@ jobs:
           mkl
 
     - uses: actions/checkout@v4
+
+    - name: Check Current Memory Limit
+      run: ulimit -a  # Check the memory limits
+
+    - name: free -h command
+      run: free -h  
+
     - name: build fds debug
       run: |
         source /opt/intel/oneapi/setvars.sh
         cd ./Build/impi_intel_linux_db
-        sh ./make_fds.sh
+        ./make_fds.sh
         ./fds_impi_intel_linux_db
+
+    - name: free -h command
+      run: free -h  
+
     - name: build fds release
       run: |
         source /opt/intel/oneapi/setvars.sh
         cd ./Build/impi_intel_linux
-        sh ./make_fds.sh
+        ./make_fds.sh
         ./fds_impi_intel_linux
+
+    - name: free -h command
+      run: free -h  
 
     # Setup python
     - uses: actions/setup-python@v5
@@ -89,11 +103,11 @@ jobs:
       run: |
         source /opt/intel/oneapi/setvars.sh
         cd ./Build/ompi_gnu_linux_db
-        sh ./make_fds.sh
+        ./make_fds.sh
         ./fds_ompi_gnu_linux_db
     - name: build fds release
       run: |
         source /opt/intel/oneapi/setvars.sh
         cd ./Build/ompi_gnu_linux
-        sh ./make_fds.sh
+        ./make_fds.sh
         ./fds_ompi_gnu_linux

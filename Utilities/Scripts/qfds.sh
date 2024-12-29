@@ -52,13 +52,14 @@ function usage {
   echo "Other options:"
   echo " -b email_address - send an email to email_address when jobs starts, aborts and finishes"
   echo " -d dir - specify directory where the case is found [default: .]"
+  echo " -G use GNU OpenMPI version of fds"
   echo " -I use Intel MPI version of fds"
   echo " -j prefix - specify a job prefix"
-  echo " -L use Open MPI version of fds"
+  echo " -L use Intel Fortran with Open MPI version of fds"
   echo " -n n - number of MPI processes per node [default: 1]"
   echo " -P use PBS/Torque"
   echo " -s   - stop job"
-  echo " -t   - used for timing studies, run a job alone on a node (reserving $NCORES_COMPUTENODE cores)"
+  echo " -t   - used for timing studies, run a job alone on a node"
   echo " -T type - run dv (development) or db (debug) version of fds"
   echo "           if -T is not specified then the release version of fds is used"
   echo " -U n - only allow n jobs owned by `whoami` to run at a time"
@@ -105,11 +106,6 @@ if [ "$QFDS_NCORES" == "" ]; then
 else
   n_cores=$QFDS_NCORES
 fi
-if [ "$NCORES_COMPUTENODE" == "" ]; then
-  NCORES_COMPUTENODE=$n_cores
-else
-  n_cores=$NCORES_COMPUTENODE
-fi
 
 #*** set default parameter values
 
@@ -123,7 +119,13 @@ max_mpi_processes_per_node=1000
 n_openmp_threads=1
 use_debug=
 use_devel=
-use_intel_mpi=1
+if [ "$USE_OMPI_GNU" == "1" ]; then
+  use_gnu_openmpi=1
+  use_intel_mpi=
+else
+  use_intel_mpi=1
+  use_gnu_openmpi=
+fi
 EMAIL=
 casedir=
 use_default_casedir=
@@ -143,7 +145,7 @@ commandline=`echo $* | sed 's/-V//' | sed 's/-v//'`
 
 #*** read in parameters from command line
 
-while getopts 'b:d:e:hHIj:Ln:o:Pp:q:stT:U:vw:y:Y' OPTION
+while getopts 'b:d:e:GhHIj:Ln:o:Pp:q:stT:U:vw:y:Y' OPTION
 do
 case $OPTION  in
   b)
@@ -154,6 +156,10 @@ case $OPTION  in
    ;;
   e)
    exe="$OPTARG"
+   ;;
+  G)
+   use_gnu_openmpi=1
+   use_intel_mpi=
    ;;
   h)
    usage
@@ -265,6 +271,9 @@ if [ "$use_intel_mpi" == "1" ]; then
     exe=$FDSROOT/fds/Build/impi_intel_linux_openmp$DB/fds_impi_intel_linux_openmp$DB
   fi
 fi
+if [ "$use_gnu_openmpi" == "1" ]; then
+  exe=$FDSROOT/fds/Build/ompi_gnu_linux$DB/fds_ompi_gnu_linux$DB
+fi
 if [ "$exe" == "" ]; then
   exe=$FDSROOT/fds/Build/ompi_intel_linux$DB/fds_ompi_intel_linux$DB
 fi
@@ -342,11 +351,15 @@ stop_fds_if_requested
 if [ "$RESOURCE_MANAGER" == "SLURM" ]; then
   QSUB="sbatch -p $queue"
   if [ "$USE_MPIRUN" == "" ]; then
-# use on blaze  note this if statement can be removed once blaze goes away
+# use the native Slurm process allocator
      MPIRUN="srun --mpi=pmi2 "
   else
-#  use on spark ( USE_MPIRUN variable is set to 1 in /etc/profile )
-     MPIRUN="mpirun "
+# use on spark ( USE_MPIRUN variable is set to 1 in /etc/profile )
+     if [ "$use_gnu_openmpi" == "1" ] || [ "$use_intel_mpi" == "" ]; then
+        MPIRUN="mpirun --bind-to none "
+     else
+        MPIRUN="mpirun "
+     fi
   fi
 else
   QSUB="qsub -q $queue"
@@ -363,30 +376,40 @@ cat << EOF > $scriptfile
 EOF
 
 if [ "$RESOURCE_MANAGER" == "SLURM" ]; then
+
 cat << EOF >> $scriptfile
 #SBATCH -J $JOBPREFIX$infile
 #SBATCH -e $outerr
 #SBATCH -o $outlog
 #SBATCH --partition=$queue
 #SBATCH --ntasks=$n_mpi_processes
-#SBATCH --nodes=$nodes
 #SBATCH --cpus-per-task=$n_openmp_threads
-#SBATCH --ntasks-per-node=$n_mpi_processes_per_node
+#SBATCH --nodes=$nodes
 #SBATCH --time=$walltime
 EOF
+
+if [[ $n_openmp_threads -gt 1 ]] || [[ $max_mpi_processes_per_node -lt 1000 ]] ; then
+cat << EOF >> $scriptfile
+#SBATCH --ntasks-per-node=$n_mpi_processes_per_node
+EOF
+fi
+
 if [ "$EMAIL" != "" ]; then
-    cat << EOF >> $scriptfile
+cat << EOF >> $scriptfile
 #SBATCH --mail-user=$EMAIL
 #SBATCH --mail-type=ALL
 EOF
 fi
+
 if [ "$benchmark" == "yes" ]; then
 cat << EOF >> $scriptfile
 #SBATCH --exclusive
 #SBATCH --cpu-freq=Performance
 EOF
 fi
+
 else # PBS/Torque
+
 cat << EOF >> $scriptfile
 #PBS -N $JOBPREFIX$infile
 #PBS -e $outerr
@@ -415,6 +438,7 @@ EOF
 if [ "$use_intel_mpi" == "1" ]; then
 cat << EOF >> $scriptfile
 export I_MPI_DEBUG=5
+export I_MPI_PMI_VALUE_LENGTH_MAX=512
 EOF
 fi
 
