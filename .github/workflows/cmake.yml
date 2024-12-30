@@ -178,6 +178,6 @@ jobs:
 
     - name: build fds
       run: |
-        call Scripts\setup_intel_compilers.bat
+        call Build\Scripts\setup_intel_compilers.bat
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j
