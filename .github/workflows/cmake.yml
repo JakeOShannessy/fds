@@ -144,6 +144,14 @@ jobs:
 
     name: windows intel intelmpi
     runs-on: [windows-latest]
+    strategy:
+      fail-fast: false
+      # The matrix sets all the different combinations of builds, e.g. platforms
+      # and build configurations
+      matrix:
+        build_type:
+          - "Debug"
+          # - "Release"
     defaults:
       run:
         shell: cmd
