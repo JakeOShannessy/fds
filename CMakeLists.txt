@@ -71,21 +71,19 @@ target_compile_definitions(fds PRIVATE GITDATE_PP="${GIT_DATE}")
 find_package(MPI REQUIRED)
 target_link_libraries(fds PRIVATE MPI::MPI_Fortran)
 
+# FDS use lp64 (4-byte integer), MKL often defaults to ilp64 (8-byte integer)
+set(MKL_INTERFACE lp64)
+set(MKL_LINK static)
 # Use MKL if found
 find_package(MKL CONFIG)
-# message(FATAL_ERROR "${MKL_IMPORTED_TARGETS}")
 if (MKL_FOUND)
-    # message(STATUS "${MKL_IMPORTED_TARGETS}")
-    # get_target_property(MKLS MKL::MKL INTERFACE_COMPILE_OPTIONS)
-    # message(STATUS "MKL Compile Options: ${MKLS}")
-    # get_target_property(MKLS MKL::MKL INTERFACE_INCLUDE_DIRECTORIES)
-    # message(STATUS "MKL Include Directories: ${MKLS}")
-    set(MKL_LINK static)
+    message(STATUS "${MKL_IMPORTED_TARGETS}")
+    get_target_property(MKLS MKL::MKL INTERFACE_COMPILE_OPTIONS)
+    message(STATUS "MKL Compile Options: ${MKLS}")
+    get_target_property(MKLS MKL::MKL INTERFACE_INCLUDE_DIRECTORIES)
+    message(STATUS "MKL Include Directories: ${MKLS}")
     target_compile_definitions(fds PRIVATE WITH_MKL)
     target_link_libraries(fds PRIVATE MKL::MKL)
-    # target_compile_options(fds PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
-    # target_include_directories(fds PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
-    # target_link_libraries(fds PUBLIC $<LINK_ONLY:MKL::MKL>)
 endif()
 
 # Use OpenMP if found
@@ -99,9 +97,10 @@ endif()
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     target_compile_options(fds PRIVATE -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics)
 elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" OR CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
+    target_compile_options(fds PRIVATE -O2   -no-wrap-margin)
 endif()
-target_include_directories(fds PRIVATE .)
 
+target_include_directories(fds PRIVATE .)
 
 if (LINUX)
     target_compile_definitions(fds PRIVATE USE_IFPORT)
@@ -109,43 +108,47 @@ endif()
 
 # Unless forced to use the system version, download and build sundials
 if(NOT(USE_SYSTEM_SUNDIALS))
-    include(FetchContent)
-    # Set some options for building sundials
-    set(ENABLE_MPI ON)
-    set(BUILD_FORTRAN_MODULE_INTERFACE ON)
-    FetchContent_Declare(
-        SUNDIALS
-        GIT_REPOSITORY https://github.com/LLNL/sundials.git
-        GIT_TAG        aaeab8d907c6b7dfca86041401fdc1448f35f826 # v6.7.0
-        OVERRIDE_FIND_PACKAGE
-    )
-    FetchContent_MakeAvailable(SUNDIALS)
+    # include(FetchContent)
+    # # Set some options for building sundials
+    # set(ENABLE_MPI ON)
+    # set(BUILD_FORTRAN_MODULE_INTERFACE ON)
+    # FetchContent_Declare(
+    #     SUNDIALS
+    #     GIT_REPOSITORY https://github.com/LLNL/sundials.git
+    #     GIT_TAG        aaeab8d907c6b7dfca86041401fdc1448f35f826 # v6.7.0
+    #     OVERRIDE_FIND_PACKAGE
+    # )
+    # FetchContent_MakeAvailable(SUNDIALS)
 endif()
 
 # Use sundials if found
-find_package(SUNDIALS REQUIRED)
-target_link_libraries(fds PRIVATE SUNDIALS::fcvode_mod)
-target_link_libraries(fds PRIVATE SUNDIALS::fnvecserial_mod)
-target_compile_definitions(fds PRIVATE WITH_SUNDIALS)
-target_compile_definitions(fds PRIVATE SUNDIALS_PP="${SUNDIALS_VERSION}")
+if(HYPRE_FOUND)
+    find_package(SUNDIALS REQUIRED)
+    target_link_libraries(fds PRIVATE SUNDIALS::fcvode_mod)
+    target_link_libraries(fds PRIVATE SUNDIALS::fnvecserial_mod)
+    target_compile_definitions(fds PRIVATE WITH_SUNDIALS)
+    target_compile_definitions(fds PRIVATE SUNDIALS_PP="${SUNDIALS_VERSION}")
+endif()
 
 # Unless forced to use the system version, download and build hypre
 if(NOT(USE_SYSTEM_HYPRE))
-    include(FetchContent)
-    FetchContent_Declare(
-        HYPRE
-        GIT_REPOSITORY https://github.com/hypre-space/hypre.git
-        GIT_TAG        cb7597ffd998dc5270c2e32025e799e68048b1cd # v2.32.0
-        SOURCE_SUBDIR  src
-        OVERRIDE_FIND_PACKAGE
-    )
-    FetchContent_MakeAvailable(HYPRE)
+    # include(FetchContent)
+    # FetchContent_Declare(
+    #     HYPRE
+    #     GIT_REPOSITORY https://github.com/hypre-space/hypre.git
+    #     GIT_TAG        cb7597ffd998dc5270c2e32025e799e68048b1cd # v2.32.0
+    #     SOURCE_SUBDIR  src
+    #     OVERRIDE_FIND_PACKAGE
+    # )
+    # FetchContent_MakeAvailable(HYPRE)
 endif()
 
 # Use hypre if found
-find_package(HYPRE REQUIRED)
-target_link_libraries(fds PRIVATE HYPRE)
-target_compile_definitions(fds PRIVATE WITH_HYPRE)
-target_compile_definitions(fds PRIVATE HYPRE_PP="${HYPRE_VERSION}")
+find_package(HYPRE)
+if(HYPRE_FOUND)
+    target_link_libraries(fds PRIVATE HYPRE)
+    target_compile_definitions(fds PRIVATE WITH_HYPRE)
+    target_compile_definitions(fds PRIVATE HYPRE_PP="${HYPRE_VERSION}")
+endif()
 
 install(TARGETS fds)
