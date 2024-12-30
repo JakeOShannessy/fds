@@ -141,3 +141,27 @@ jobs:
         cd ./Build/ompi_gnu_linux
         ./make_fds.sh
         ./fds_ompi_gnu_linux
+  cmake-linux-gnu-openmpi:
+    # build on ubuntu using gfortran with openmpi and mkl based on
+    # https://github.com/oneapi-src/oneapi-ci
+
+    name: cmake linux gnu openmpi
+    runs-on: [ubuntu-latest]
+
+    steps:
+    - name: install openmpi
+      run: |
+        sudo apt-get update
+        sudo apt-get install libopenmpi-dev openmpi-bin
+    - uses: rscohn2/setup-oneapi@v0
+      with:
+        components: |
+          mkl
+
+    - uses: actions/checkout@v4
+    - name: build fds debug
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export FC=mpifort
+        cmake -B builddir -S .
+        cmake --build builddir
