@@ -51,6 +51,7 @@ jobs:
       with:
         components: |
           ifx
+          icx
           impi
           mkl
 
@@ -85,7 +86,7 @@ jobs:
         echo "CC=icx" >> $GITHUB_ENV
         echo "CXX=icx" >> $GITHUB_ENV
         echo "FC=mpiifx" >> $GITHUB_ENV
-    - name: build fds debug
+    - name: build fds
       run: |
         source /opt/intel/oneapi/setvars.sh
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
@@ -112,21 +113,11 @@ jobs:
       # Check out the smv repo
       - name: Checkout code
         uses: actions/checkout@v3
-      # If we are currently building on Linux (ubuntu) install all the native
-      # pre-requisites
-      - name: Install linux deps
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install build-essential freeglut3-dev libx11-dev libxmu-dev libxi-dev libglew-dev libgd-dev libjson-c-dev
       - name: install openmpi
-        if: runner.os == 'macOS'
-        run: |
-          brew install open-mpi
+        run: brew install open-mpi
       # If we are building on macos configure the environment to use gcc-14 as
       # the compiler
       - name: set macos gcc
-        if: runner.os == 'macOS'
         shell: bash
         run: |
           echo "CC=gcc-14" >> $GITHUB_ENV
@@ -134,16 +125,6 @@ jobs:
           echo "FC=gfortran-14" >> $GITHUB_ENV
           echo "OMPI_FC=gfortran-14" >> $GITHUB_ENV
           brew install glew gd zlib json-c
-      # If we are building on linux configure the environment to use gcc as the
-      # compiler
-      - name: set linux gcc
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          echo "CC=gcc" >> $GITHUB_ENV
-          echo "CXX=g++" >> $GITHUB_ENV
-          echo "FC=gfortran" >> $GITHUB_ENV
-      # Run cmake to build smokeview
       - name: Build
         shell: bash
         run: |
