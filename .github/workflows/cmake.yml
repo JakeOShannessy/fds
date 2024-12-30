@@ -22,10 +22,7 @@ permissions:
   contents: read
 
 jobs:
-  cmake-linux-intel-intelmpi:
-    # build on ubuntu using ifort with intelmpi and mkl based on
-    # https://github.com/oneapi-src/oneapi-ci
-
+  cmake-linux:
     name: cmake ${{ matrix.container }} ${{ matrix.mpi }} ${{ matrix.build_type }}
     runs-on: [ubuntu-latest]
     # container: ${{ matrix.container }}
@@ -46,6 +43,7 @@ jobs:
       if: matrix.container != 'ubuntu:24.04'
       run: dnf install -y git gcc make cmake
 
+    # Setup OneAPI, icx is necessary for third-party libs
     - uses: rscohn2/setup-oneapi@v0
       if: matrix.mpi == 'intelmpi'
       with:
@@ -64,6 +62,7 @@ jobs:
     - name: install openmpi
       if: matrix.mpi == 'openmpi' && matrix.container != 'ubuntu:24.04'
       run: dnf install -y openmpi-devel
+
     - name: install openmpi
       if: matrix.mpi == 'openmpi' && matrix.container == 'ubuntu:24.04'
       run: |
@@ -79,6 +78,7 @@ jobs:
         echo "CC=gcc" >> $GITHUB_ENV
         echo "CXX=g++" >> $GITHUB_ENV
         echo "FC=gfortran" >> $GITHUB_ENV
+
     - name: set linux-gnu compiler
       if: runner.os == 'Linux' && matrix.mpi == 'intelmpi'
       shell: bash
@@ -86,13 +86,14 @@ jobs:
         echo "CC=icx" >> $GITHUB_ENV
         echo "CXX=icx" >> $GITHUB_ENV
         echo "FC=mpiifx" >> $GITHUB_ENV
+
     - name: build fds
       run: |
         source /opt/intel/oneapi/setvars.sh
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j
+
   cmake-osx:
-    if: false
     # Set the name of this build, variable depending on the OS
     name: cmake ${{ matrix.os }} ${{ matrix.mpi }} ${{ matrix.build_type }}
     strategy:
@@ -106,17 +107,15 @@ jobs:
           - "openmpi"
         build_type:
           - "Debug"
-          - "Release"
-    # Set the platform to build on
+          # - "Release"
     runs-on: ${{ matrix.os }}
     steps:
-      # Check out the smv repo
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: install openmpi
         run: brew install open-mpi
-      # If we are building on macos configure the environment to use gcc-14 as
-      # the compiler
+
       - name: set macos gcc
         shell: bash
         run: |
