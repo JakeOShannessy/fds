@@ -32,7 +32,7 @@ jobs:
   cmake-linux:
     name: cmake ${{ matrix.container }} ${{ matrix.mpi }} ${{ matrix.build_type }}
     runs-on: [ubuntu-latest]
-    # container: ${{ matrix.container }}
+    container: ${{ matrix.container }}
     strategy:
       matrix:
         container:
