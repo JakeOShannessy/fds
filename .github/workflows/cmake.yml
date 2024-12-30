@@ -46,9 +46,12 @@ jobs:
           - "Debug"
           - "Release"
     steps:
-    - name: Install prerequisites
+    - name: Install prerequisites (dnf)
       if: matrix.container != 'ubuntu:24.04'
-      run: dnf install -y git gcc make cmake
+      run: dnf install -y git gcc make cmake sudo
+    - name: Install prerequisites (apt)
+      if: matrix.container != 'ubuntu:24.04'
+      run: apt-get install -y git gcc make cmake sudo
 
     # Setup OneAPI, icx is necessary for third-party libs
     - uses: rscohn2/setup-oneapi@v0
