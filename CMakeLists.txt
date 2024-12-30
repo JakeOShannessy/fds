@@ -69,7 +69,7 @@ else()
     set(GIT_STAT "-dirty")
 endif()
 
-target_compile_options(fds PRIVATE -m64 -cpp)
+target_compile_options(fds PRIVATE -m64)
 target_compile_definitions(fds PRIVATE BUILDDATE_PP="${BUILD_DATE}")
 target_compile_definitions(fds PRIVATE GITHASH_PP="${GIT_HASH}${GIT_STAT}-${GIT_BRANCH}")
 target_compile_definitions(fds PRIVATE GITDATE_PP="${GIT_DATE}")
@@ -109,13 +109,24 @@ endif()
 
 # Set compiler flags for various compilers
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(fds PRIVATE -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics)
+    target_compile_options(fds PRIVATE -cpp -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics)
 elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" OR CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
-    target_compile_options(fds PRIVATE -O2 -no-wrap-margin)
+    target_compile_options(fds PRIVATE -fpp )
     # When compiling with Intel on Linux, enable the IFPORT library
     if (LINUX)
         target_compile_definitions(fds PRIVATE USE_IFPORT)
     endif()
+    # When compiling with Intel and not on Windows apply -no-wrap-margin.
+    if (NOT(WIN32))
+        target_compile_definitions(fds PRIVATE -no-wrap-margin)
+    endif()
+endif()
+
+# If we are using the old Intel Fortran compiler (ifort) suppress the warning
+# that this is an old compiler. This is applied to all compilations (hence not
+# using target_compile_options) as it is a property of the compiler.
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" )
+    add_compile_options(-diag-disable=10448)
 endif()
 
 
