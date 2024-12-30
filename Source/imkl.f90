@@ -199,7 +199,7 @@ END MODULE MKL_CLUSTER_SPARSE_SOLVER
 #ifdef WITH_HYPRE
 MODULE HYPRE_INTERFACE
    IMPLICIT NONE(TYPE,EXTERNAL)
-   INCLUDE 'HYPREf.h' ! defines the integer parameters
+   INCLUDE 'hypre/HYPREf.h' ! defines the integer parameters
    INTEGER :: HYPRE_IERR = 0
    INTEGER, PARAMETER :: HYPRE_SOLVER_ID = 1                 ! Preconditioned Conjugate Gradient (PCG) solver
    INTEGER, PARAMETER :: HYPRE_PRECOND_ID = 2                ! Algebraic Multi-Grid (AMG) preconditioner
@@ -245,9 +245,9 @@ MODULE HYPRE_INTERFACE
 
    INTERFACE
 
-      SUBROUTINE HYPRE_INITIALIZE(IERR)
+      SUBROUTINE HYPRE_INIT(IERR)
          INTEGER, INTENT(OUT) :: IERR
-      END SUBROUTINE HYPRE_INITIALIZE
+      END SUBROUTINE HYPRE_INIT
 
       SUBROUTINE HYPRE_FINALIZE(IERR)
          INTEGER, INTENT(OUT) :: IERR
@@ -496,7 +496,7 @@ MODULE HYPRE_INTERFACE
              HYPRE_MEMORY_DEVICE,                 &  ! from HYPREf.h
              HYPRE_EXEC_HOST,                     &  ! from HYPREf.h
              HYPRE_EXEC_DEVICE,                   &  ! from HYPREf.h
-             HYPRE_INITIALIZE,                    &  ! subroutine in HYPRE library
+             HYPRE_INIT,                    &  ! subroutine in HYPRE library
              HYPRE_FINALIZE,                      &  ! subroutine in HYPRE library
              HYPRE_IJMATRIXCREATE,                &  ! subroutine in HYPRE library
              HYPRE_IJMATRIXSETOBJECTTYPE,         &  ! subroutine in HYPRE library

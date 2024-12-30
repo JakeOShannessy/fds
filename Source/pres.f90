@@ -1153,7 +1153,7 @@ RETURN
 IERR=0
 #ifdef WITH_HYPRE
 
-CALL HYPRE_INITIALIZE(IERR)
+CALL HYPRE_INIT(IERR)
 IF (IERR==1) THEN
    WRITE(LU_ERR,'(A)') 'Error: HYPRE pressure solver initialization error.'
    STOP_STATUS = SETUP_STOP
@@ -3902,7 +3902,7 @@ CASE(MKL_CPARDISO_FLAG)
 #endif
 CASE(HYPRE_FLAG)
 #ifdef WITH_HYPRE
-   CALL HYPRE_INITIALIZE(IERR)
+   CALL HYPRE_INIT(IERR)
    IF (IERR==1) THEN
       IF(MY_RANK==0) WRITE(LU_ERR,'(A)') 'Error: HYPRE pressure solver initialization error.'
       STOP_STATUS = SETUP_STOP

@@ -11,7 +11,7 @@
 
 VPATH = ../Source
 
-# 3rd part library versions 
+# 3rd part library versions
 HYPRE_VERSION=v2.32.0
 SUNDIALS_VERSION=v6.7.0
 
@@ -59,10 +59,10 @@ FFLAGSMKL_OPENMPI =
 LFLAGSMKL_OPENMPI =
 FFLAGSMKL_CUSTOM =
 LFLAGSMKL_CUSTOM =
-FFLAGS_SUNDIALS =
-LFLAGS_SUNDIALS =
-FFLAGS_HYPRE =
-LFLAGS_HYPRE =
+FFLAGS_SUNDIALS = -DWITH_SUNDIALS -DSUNDIALS_PP=\""$(shell rpm -qv sundials)"\" -I/usr/lib64/gfortran/modules/sundials
+LFLAGS_SUNDIALS = /usr/lib64/libsundials_fcvode_mod.a /usr/lib64/libsundials_fnvecserial_mod.a /usr/lib64/libsundials_cvode.a
+FFLAGS_HYPRE = -DWITH_HYPRE -DHYPRE_PP=\""$(shell rpm -qv hypre)"\" -I/usr/include
+LFLAGS_HYPRE = -lHYPRE -lm
 ifdef MKLROOT # This assumes the MKL library is available.
 ifeq ($(shell echo "check_quotes"),"check_quotes")
 # windows
