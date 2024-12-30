@@ -51,7 +51,9 @@ jobs:
       run: dnf install -y git gcc make cmake sudo
     - name: Install prerequisites (apt)
       if: matrix.container == 'ubuntu:24.04'
-      run: apt install -y git gcc make cmake sudo
+      run: |
+        apt-get update
+        apt-get install -y git gcc make cmake sudo
 
     # Setup OneAPI, icx is necessary for third-party libs
     - uses: rscohn2/setup-oneapi@v0
@@ -76,8 +78,8 @@ jobs:
     - name: install openmpi
       if: matrix.mpi == 'openmpi' && matrix.container == 'ubuntu:24.04'
       run: |
-        sudo apt update
-        sudo apt install libopenmpi-dev openmpi-bin
+        sudo apt-get update
+        sudo apt-get install libopenmpi-dev openmpi-bin
 
     - uses: actions/checkout@v4
 
