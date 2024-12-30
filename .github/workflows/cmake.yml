@@ -93,7 +93,7 @@ jobs:
   cmake-osx:
     if: false
     # Set the name of this build, variable depending on the OS
-    name: build ${{ matrix.os }} - gcc
+    name: cmake ${{ matrix.os }} ${{ matrix.mpi }} ${{ matrix.build_type }}
     strategy:
       fail-fast: false
       # The matrix sets all the different combinations of builds, e.g. platforms
@@ -101,6 +101,8 @@ jobs:
       matrix:
         os:
           - macos-latest
+        mpi:
+          - "openmpi"
         build_type:
           - "Debug"
           - "Release"

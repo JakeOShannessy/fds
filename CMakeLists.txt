@@ -86,6 +86,7 @@ if(STATIC_MKL)
 endif()
 # Turn on BLACS
 set(ENABLE_BLACS ON)
+set(ENABLE_SCALAPACK ON)
 # Use MKL if found
 find_package(MKL CONFIG)
 if (MKL_FOUND)
