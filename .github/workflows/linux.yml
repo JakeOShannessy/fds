@@ -1,6 +1,4 @@
 name: github-linux
-env:
-  BUILD_TYPE: Debug
 
 on:
   push:
@@ -25,6 +23,7 @@ permissions:
 
 jobs:
   linux-intel-intelmpi:
+    if: false
     # build on ubuntu using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 
@@ -85,6 +84,7 @@ jobs:
 
 
   linux-gnu-openmpi:
+    if: false
     # build on ubuntu using gfortran with openmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 
@@ -116,6 +116,7 @@ jobs:
         ./fds_ompi_gnu_linux
 
   cmake-linux-intel-intelmpi:
+    if: false
     # build on ubuntu using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 
@@ -131,6 +132,9 @@ jobs:
         mpi:
           - "intelmpi"
           - "openmpi"
+        build_type:
+          - "Debug"
+          - "Release"
     steps:
     - name: Install prerequisites
       if: matrix.container != 'ubuntu:24.04'
@@ -174,8 +178,8 @@ jobs:
         then
           export FC=mpiifx
         fi
-        cmake -B builddir -S .
-        cmake --build builddir
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        cmake --build builddir -j
   cmake-osx:
     # Set the name of this build, variable depending on the OS
     name: build ${{ matrix.os }} - gcc
@@ -186,6 +190,9 @@ jobs:
       matrix:
         os:
           - macos-latest
+        build_type:
+          - "Debug"
+          - "Release"
     # Set the platform to build on
     runs-on: ${{ matrix.os }}
     steps:
@@ -199,6 +206,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install build-essential freeglut3-dev libx11-dev libxmu-dev libxi-dev libglew-dev libgd-dev libjson-c-dev
+      - name: install openmpi
+        if: runner.os == 'macOS'
+        run: |
+          brew install open-mpi
       # If we are building on macos configure the environment to use gcc-14 as
       # the compiler
       - name: set macos gcc
@@ -207,6 +218,8 @@ jobs:
         run: |
           echo "CC=gcc-14" >> $GITHUB_ENV
           echo "CXX=g++-14" >> $GITHUB_ENV
+          echo "FC=gfortran-14" >> $GITHUB_ENV
+          echo "OMPI_FC=gfortran-14" >> $GITHUB_ENV
           brew install glew gd zlib json-c
       # If we are building on linux configure the environment to use gcc as the
       # compiler
@@ -216,6 +229,7 @@ jobs:
         run: |
           echo "CC=gcc" >> $GITHUB_ENV
           echo "CXX=g++" >> $GITHUB_ENV
+          echo "FC=gfortran" >> $GITHUB_ENV
       # Remove Visualization data on macos as we can't render currently.
       - name: Download test data
         if: runner.os == 'macOS'
@@ -224,5 +238,5 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cmake -B ${{github.workspace}}/cbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          cmake --build ${{github.workspace}}/cbuild -j4
+          cmake -B builddir -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+          cmake --build builddir -j

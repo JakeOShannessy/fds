@@ -25,14 +25,15 @@ permissions:
 
 jobs:
   osx-gnu-openmpi:
+    if: false
     # debug build on osx using gfortran with openmpi
-  
+
     name: osx gnu openmpi
     runs-on: [macos-latest]
     defaults:
       run:
         shell: bash
-        
+
     steps:
     - uses: actions/checkout@v4
     - name: install openmpi
