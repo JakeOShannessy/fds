@@ -37,7 +37,7 @@ jobs:
       matrix:
         container:
           # - "fedora:40"
-          # - "rockylinux:9"
+          - "rockylinux:9"
           - "ubuntu:24.04"
         mpi:
           - "intelmpi"
@@ -114,7 +114,7 @@ jobs:
           - "openmpi"
         build_type:
           - "Debug"
-          # - "Release"
+          - "Release"
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -140,7 +140,7 @@ jobs:
     # build on windows using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 
-    name: windows intel intelmpi ${{ matrix.build_type }}
+    name: windows ${{matrix.compiler}} intelmpi ${{ matrix.build_type }}
     runs-on: [windows-latest]
     strategy:
       fail-fast: false
@@ -149,7 +149,10 @@ jobs:
       matrix:
         build_type:
           - "Debug"
-          # - "Release"
+          - "Release"
+        compiler:
+          - "mpiifort"
+          - "mpiifx"
     defaults:
       run:
         shell: cmd
@@ -185,5 +188,7 @@ jobs:
     - name: build fds
       run: |
         call Build\Scripts\setup_intel_compilers.bat
-        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SUNDIALS=NO -DUSE_HYPRE=NO -DCMAKE_Fortran_COMPILER=mpiifx
+        ifx /?
+        mpiifx /?
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SUNDIALS=NO -DUSE_HYPRE=NO -DCMAKE_Fortran_COMPILER=${{matrix.compiler}}
         cmake --build builddir -j
