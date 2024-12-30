@@ -188,5 +188,6 @@ jobs:
       run: |
         call Build\Scripts\setup_intel_compilers.bat
         ifx /?
+        set FC=ifx
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j
