@@ -23,7 +23,6 @@ permissions:
 
 jobs:
   linux-intel-intelmpi:
-    if: false
     # build on ubuntu using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 
@@ -84,7 +83,6 @@ jobs:
 
 
   linux-gnu-openmpi:
-    if: false
     # build on ubuntu using gfortran with openmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 

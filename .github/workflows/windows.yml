@@ -34,7 +34,6 @@ env:
 
 jobs:
   windows-intel-intelmpi:
-    if: false
     # build on windows using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 

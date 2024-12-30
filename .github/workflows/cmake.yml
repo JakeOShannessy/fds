@@ -30,7 +30,6 @@ permissions:
 
 jobs:
   cmake-linux:
-    if: false
     name: cmake ${{ matrix.container }} ${{ matrix.mpi }} ${{ matrix.build_type }}
     runs-on: [ubuntu-latest]
     # container: ${{ matrix.container }}
@@ -102,7 +101,6 @@ jobs:
         cmake --build builddir -j
 
   cmake-osx:
-    if: false
     # Set the name of this build, variable depending on the OS
     name: cmake ${{ matrix.os }} ${{ matrix.mpi }} ${{ matrix.build_type }}
     strategy:
@@ -187,5 +185,5 @@ jobs:
     - name: build fds
       run: |
         call Build\Scripts\setup_intel_compilers.bat
-        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -G Ninja -DUSE_SUNDIALS=NO -DUSE_HYPRE=NO
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SUNDIALS=NO -DUSE_HYPRE=NO
         cmake --build builddir -j

@@ -25,7 +25,6 @@ permissions:
 
 jobs:
   osx-gnu-openmpi:
-    if: false
     # debug build on osx using gfortran with openmpi
 
     name: osx gnu openmpi
