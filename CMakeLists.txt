@@ -123,10 +123,9 @@ elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" OR CMAKE_Fortran_COMPILER_ID S
 endif()
 
 # If we are using the old Intel Fortran compiler (ifort) suppress the warning
-# that this is an old compiler. This is applied to all compilations (hence not
-# using target_compile_options) as it is a property of the compiler.
+# that this is an old compiler.
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" )
-    add_compile_options(-diag-disable=10448)
+    target_compile_options(fds PRIVATE /Qdiag-disable:10448)
 endif()
 
 
