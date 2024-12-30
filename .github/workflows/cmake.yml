@@ -1,4 +1,4 @@
-name: github-linux
+name: cmake
 
 on:
   push:
