@@ -44,7 +44,7 @@ jobs:
       run: ulimit -a  # Check the memory limits
 
     - name: free -h command
-      run: free -h  
+      run: free -h
 
     - name: build fds debug
       run: |
@@ -54,7 +54,7 @@ jobs:
         ./fds_impi_intel_linux_db
 
     - name: free -h command
-      run: free -h  
+      run: free -h
 
     - name: build fds release
       run: |
@@ -64,7 +64,7 @@ jobs:
         ./fds_impi_intel_linux
 
     - name: free -h command
-      run: free -h  
+      run: free -h
 
     # Setup python
     - uses: actions/setup-python@v5
@@ -80,6 +80,8 @@ jobs:
         cd $GITHUB_WORKSPACE/Utilities/Python
         python hello_world.py
         python FDS_verification_script.py
+
+
 
   linux-gnu-openmpi:
     # build on ubuntu using gfortran with openmpi and mkl based on
@@ -111,3 +113,65 @@ jobs:
         cd ./Build/ompi_gnu_linux
         ./make_fds.sh
         ./fds_ompi_gnu_linux
+
+  cmake-linux-intel-intelmpi:
+    # build on ubuntu using ifort with intelmpi and mkl based on
+    # https://github.com/oneapi-src/oneapi-ci
+
+    name: cmake ${{ matrix.container }} intel ${{ matrix.mpi }}
+    runs-on: [ubuntu-latest]
+    # container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        container:
+          # - "fedora:40"
+          # - "rockylinux:9"
+          - "ubuntu:24.04"
+        mpi:
+          - "intelmpi"
+          - "openmpi"
+    steps:
+    - name: Install prerequisites
+      if: matrix.container != 'ubuntu:24.04'
+      run: dnf install -y git gcc make cmake
+
+    - uses: rscohn2/setup-oneapi@v0
+      if: matrix.mpi == 'intelmpi'
+      with:
+        components: |
+          ifx
+          impi
+          mkl
+
+    - uses: rscohn2/setup-oneapi@v0
+      if: matrix.mpi != 'intelmpi'
+      with:
+        components: |
+          mkl
+
+    - name: install openmpi
+      if: matrix.mpi == 'openmpi' && matrix.container != 'ubuntu:24.04'
+      run: dnf install -y openmpi-devel
+    - name: install openmpi
+      if: matrix.mpi == 'openmpi' && matrix.container == 'ubuntu:24.04'
+      run: |
+        sudo apt-get update
+        sudo apt-get install libopenmpi-dev openmpi-bin
+
+    - uses: actions/checkout@v4
+
+    - name: Check Current Memory Limit
+      run: ulimit -a  # Check the memory limits
+
+    - name: free -h command
+      run: free -h
+
+    - name: build fds debug
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        if [ "${{ matrix.mpi }}" = "intelmpi" ]
+        then
+          export FC=mpiifx
+        fi
+        cmake -B builddir -S .
+        cmake --build builddir
