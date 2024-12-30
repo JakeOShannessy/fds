@@ -178,6 +178,6 @@ jobs:
 
     - name: build fds
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        call Scripts\setup_intel_compilers.bat
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j
