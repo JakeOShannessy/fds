@@ -188,7 +188,5 @@ jobs:
     - name: build fds
       run: |
         call Build\Scripts\setup_intel_compilers.bat
-        ifx /?
-        mpiifx /?
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SUNDIALS=NO -DUSE_HYPRE=NO -DCMAKE_Fortran_COMPILER=${{matrix.compiler}}
         cmake --build builddir -j
