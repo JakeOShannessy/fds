@@ -138,11 +138,11 @@ jobs:
         run: |
           cmake -B builddir -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
           cmake --build builddir -j
-  windows-intel-intelmpi:
+  cmake-windows:
     # build on windows using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 
-    name: windows intel intelmpi
+    name: windows intel intelmpi ${{ matrix.build_type }}
     runs-on: [windows-latest]
     strategy:
       fail-fast: false
@@ -187,5 +187,6 @@ jobs:
     - name: build fds
       run: |
         call Build\Scripts\setup_intel_compilers.bat
+        ifx /?
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j
