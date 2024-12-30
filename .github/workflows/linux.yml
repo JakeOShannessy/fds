@@ -124,14 +124,15 @@ jobs:
     strategy:
       matrix:
         container:
-          - "fedora:40"
-          - "rockylinux:9"
-          # - "ubuntu:24.04"
+          # - "fedora:40"
+          # - "rockylinux:9"
+          - "ubuntu:24.04"
         mpi:
           - "intelmpi"
           - "openmpi"
     steps:
     - name: Install prerequisites
+      if: matrix.container != 'ubuntu:24.04'
       run: dnf install -y git gcc make cmake
 
     - uses: rscohn2/setup-oneapi@v0
@@ -149,8 +150,13 @@ jobs:
           mkl
 
     - name: install openmpi
-      if: matrix.mpi == 'openmpi'
+      if: matrix.mpi == 'openmpi' && matrix.container != 'ubuntu:24.04'
       run: dnf install -y openmpi-devel
+    - name: install openmpi
+      if: matrix.mpi == 'openmpi' && matrix.container == 'ubuntu:24.04'
+      run: |
+        sudo apt-get update
+        sudo apt-get install libopenmpi-dev openmpi-bin
 
     - uses: actions/checkout@v4
 

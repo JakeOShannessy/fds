@@ -7,10 +7,10 @@ project(
 )
 enable_language(Fortran)
 
-option(USE_HYPRE           "Use the hypre library"                    OFF)
+option(USE_HYPRE           "Use the hypre library"                    ON)
 option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 
-option(USE_SUNDIALS        "Use the sundials library"                 OFF)
+option(USE_SUNDIALS        "Use the sundials library"                 ON)
 option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 # The existing FDS makefile links MKL statically, but this is optional and can
