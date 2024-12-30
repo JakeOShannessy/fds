@@ -15,7 +15,7 @@ option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 # The existing FDS makefile links MKL statically, but this is optional and can
 # be changed to dynamic
-option(MKL_LINK            "MKL link method"                          static)
+option(STATIC_MKL          "Statically link MKL"                      ON)
 
 add_executable(fds
     Source/main.f90
@@ -80,6 +80,10 @@ target_link_libraries(fds PRIVATE MPI::MPI_Fortran)
 
 # FDS use lp64 (4-byte integer), MKL often defaults to ilp64 (8-byte integer)
 set(MKL_INTERFACE lp64)
+# If we have elected to link MKL statically, set that option
+if(STATIC_MKL)
+    set(MKL_LINK static)
+endif()
 # Turn on BLACS
 set(ENABLE_BLACS ON)
 # Use MKL if found

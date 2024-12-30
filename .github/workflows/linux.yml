@@ -85,7 +85,7 @@ jobs:
     # build on ubuntu using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
 
-    name: linux intel intelmpi
+    name: cmake linux intel intelmpi
     runs-on: [ubuntu-latest]
 
     steps:
