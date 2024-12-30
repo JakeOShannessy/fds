@@ -111,12 +111,12 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     target_compile_options(fds PRIVATE -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics)
 elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" OR CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
     target_compile_options(fds PRIVATE -O2 -no-wrap-margin)
+    # When compiling with Intel on Linux, enable the IFPORT library
+    if (LINUX)
+        target_compile_definitions(fds PRIVATE USE_IFPORT)
+    endif()
 endif()
 
-# Set compiler flags for various platforms
-if (LINUX)
-    target_compile_definitions(fds PRIVATE USE_IFPORT)
-endif()
 
 # Find or build sundials if the option is set to use it
 if(USE_SUNDIALS)
