@@ -44,7 +44,7 @@ jobs:
       run: ulimit -a  # Check the memory limits
 
     - name: free -h command
-      run: free -h  
+      run: free -h
 
     - name: build fds debug
       run: |
@@ -54,7 +54,7 @@ jobs:
         ./fds_impi_intel_linux_db
 
     - name: free -h command
-      run: free -h  
+      run: free -h
 
     - name: build fds release
       run: |
@@ -64,7 +64,7 @@ jobs:
         ./fds_impi_intel_linux
 
     - name: free -h command
-      run: free -h  
+      run: free -h
 
     # Setup python
     - uses: actions/setup-python@v5
@@ -80,6 +80,36 @@ jobs:
         cd $GITHUB_WORKSPACE/Utilities/Python
         python hello_world.py
         python FDS_verification_script.py
+
+  cmake-linux-intel-intelmpi:
+    # build on ubuntu using ifort with intelmpi and mkl based on
+    # https://github.com/oneapi-src/oneapi-ci
+
+    name: linux intel intelmpi
+    runs-on: [ubuntu-latest]
+
+    steps:
+    - uses: rscohn2/setup-oneapi@v0
+      with:
+        components: |
+          ifx
+          impi
+          mkl
+
+    - uses: actions/checkout@v4
+
+    - name: Check Current Memory Limit
+      run: ulimit -a  # Check the memory limits
+
+    - name: free -h command
+      run: free -h
+
+    - name: build fds debug
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export FC=mpiifx
+        cmake -B builddir -S .
+        cmake --build builddir
 
   linux-gnu-openmpi:
     # build on ubuntu using gfortran with openmpi and mkl based on

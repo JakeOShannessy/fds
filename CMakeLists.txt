@@ -7,11 +7,15 @@ project(
 )
 enable_language(Fortran)
 
-option(USE_HYPRE "Use the hypre library" ON)
-option(USE_SYSTEM_HYPRE "Use the hypre library that is made available by the system" OFF)
+option(USE_HYPRE           "Use the hypre library"                    OFF)
+option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 
-option(USE_SUNDIALS "Use the sundials library" ON)
-option(USE_SYSTEM_SUNDIALS "Use the sundials library that is made available by the system" OFF)
+option(USE_SUNDIALS        "Use the sundials library"                 OFF)
+option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
+
+# The existing FDS makefile links MKL statically, but this is optional and can
+# be changed to dynamic
+option(MKL_LINK            "MKL link method"                          static)
 
 add_executable(fds
     Source/main.f90
@@ -38,7 +42,6 @@ add_executable(fds
     Source/ctrl.f90
     Source/hvac.f90
     Source/mass.f90
-    # Source/json.f90
     Source/imkl.f90
     Source/wall.f90
     Source/fire.f90
@@ -77,8 +80,8 @@ target_link_libraries(fds PRIVATE MPI::MPI_Fortran)
 
 # FDS use lp64 (4-byte integer), MKL often defaults to ilp64 (8-byte integer)
 set(MKL_INTERFACE lp64)
-# TODO: MKL is linked statically in the makefile
-# set(MKL_LINK static)
+# Turn on BLACS
+set(ENABLE_BLACS ON)
 # Use MKL if found
 find_package(MKL CONFIG)
 if (MKL_FOUND)
