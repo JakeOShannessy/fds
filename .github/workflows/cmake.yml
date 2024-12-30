@@ -1,0 +1,149 @@
+name: github-linux
+
+on:
+  push:
+    paths:
+    - .github/**
+    - Build/**
+    - Source/**
+  pull_request:
+    paths:
+    - .github/**
+    - Build/**
+    - Source/**
+
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+
+permissions:
+  contents: read
+
+jobs:
+  cmake-linux-intel-intelmpi:
+    if: false
+    # build on ubuntu using ifort with intelmpi and mkl based on
+    # https://github.com/oneapi-src/oneapi-ci
+
+    name: cmake ${{ matrix.container }} intel ${{ matrix.mpi }}
+    runs-on: [ubuntu-latest]
+    # container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        container:
+          # - "fedora:40"
+          # - "rockylinux:9"
+          - "ubuntu:24.04"
+        mpi:
+          - "intelmpi"
+          - "openmpi"
+        build_type:
+          - "Debug"
+          - "Release"
+    steps:
+    - name: Install prerequisites
+      if: matrix.container != 'ubuntu:24.04'
+      run: dnf install -y git gcc make cmake
+
+    - uses: rscohn2/setup-oneapi@v0
+      if: matrix.mpi == 'intelmpi'
+      with:
+        components: |
+          ifx
+          impi
+          mkl
+
+    - uses: rscohn2/setup-oneapi@v0
+      if: matrix.mpi != 'intelmpi'
+      with:
+        components: |
+          mkl
+
+    - name: install openmpi
+      if: matrix.mpi == 'openmpi' && matrix.container != 'ubuntu:24.04'
+      run: dnf install -y openmpi-devel
+    - name: install openmpi
+      if: matrix.mpi == 'openmpi' && matrix.container == 'ubuntu:24.04'
+      run: |
+        sudo apt-get update
+        sudo apt-get install libopenmpi-dev openmpi-bin
+
+    - uses: actions/checkout@v4
+
+    - name: Check Current Memory Limit
+      run: ulimit -a  # Check the memory limits
+
+    - name: free -h command
+      run: free -h
+
+    - name: build fds debug
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        if [ "${{ matrix.mpi }}" = "intelmpi" ]
+        then
+          export FC=mpiifx
+        fi
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        cmake --build builddir -j
+  cmake-osx:
+    # Set the name of this build, variable depending on the OS
+    name: build ${{ matrix.os }} - gcc
+    strategy:
+      fail-fast: false
+      # The matrix sets all the different combinations of builds, e.g. platforms
+      # and build configurations
+      matrix:
+        os:
+          - macos-latest
+        build_type:
+          - "Debug"
+          - "Release"
+    # Set the platform to build on
+    runs-on: ${{ matrix.os }}
+    steps:
+      # Check out the smv repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+      # If we are currently building on Linux (ubuntu) install all the native
+      # pre-requisites
+      - name: Install linux deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential freeglut3-dev libx11-dev libxmu-dev libxi-dev libglew-dev libgd-dev libjson-c-dev
+      - name: install openmpi
+        if: runner.os == 'macOS'
+        run: |
+          brew install open-mpi
+      # If we are building on macos configure the environment to use gcc-14 as
+      # the compiler
+      - name: set macos gcc
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          echo "CC=gcc-14" >> $GITHUB_ENV
+          echo "CXX=g++-14" >> $GITHUB_ENV
+          echo "FC=gfortran-14" >> $GITHUB_ENV
+          echo "OMPI_FC=gfortran-14" >> $GITHUB_ENV
+          brew install glew gd zlib json-c
+      # If we are building on linux configure the environment to use gcc as the
+      # compiler
+      - name: set linux gcc
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          echo "CC=gcc" >> $GITHUB_ENV
+          echo "CXX=g++" >> $GITHUB_ENV
+          echo "FC=gfortran" >> $GITHUB_ENV
+      # Remove Visualization data on macos as we can't render currently.
+      - name: Download test data
+        if: runner.os == 'macOS'
+        run: rm -rf Verification/Visualization/*.smv
+      # Run cmake to build smokeview
+      - name: Build
+        shell: bash
+        run: |
+          cmake -B builddir -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+          cmake --build builddir -j
