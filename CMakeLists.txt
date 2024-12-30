@@ -46,6 +46,7 @@ add_executable(fds
     Source/read.f90
     Source/divg.f90
 )
+target_include_directories(fds PRIVATE .)
 
 # Get various properties about the time and git revision
 execute_process(COMMAND date "+%b %d\\, %Y  %T"          OUTPUT_VARIABLE BUILD_DATE_XLF OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -94,14 +95,14 @@ else()
     message(STATUS "OpenMP was not found. OpenMP will not be linked.")
 endif()
 
+# Set compiler flags for various compilers
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     target_compile_options(fds PRIVATE -O2 -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics)
 elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" OR CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
-    target_compile_options(fds PRIVATE -O2   -no-wrap-margin)
+    target_compile_options(fds PRIVATE -O2 -no-wrap-margin)
 endif()
 
-target_include_directories(fds PRIVATE .)
-
+# Set compiler flags for various platforms
 if (LINUX)
     target_compile_definitions(fds PRIVATE USE_IFPORT)
 endif()
