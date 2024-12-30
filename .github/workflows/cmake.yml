@@ -154,8 +154,8 @@ jobs:
           - "Debug"
           - "Release"
         compiler:
-          - "mpiifort.bat"
-          - "mpiifx.bat"
+          - "ifort"
+          - "ifx"
     defaults:
       run:
         shell: cmd
