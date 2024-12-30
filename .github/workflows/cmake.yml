@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           cmake -B builddir -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
-          cmake --build builddir -j
+          cmake --build builddir -j1
   cmake-windows:
     # build on windows using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
