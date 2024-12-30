@@ -120,7 +120,7 @@ jobs:
 
     name: cmake ${{ matrix.container }} intel ${{ matrix.mpi }}
     runs-on: [ubuntu-latest]
-    container: ${{ matrix.container }}
+    # container: ${{ matrix.container }}
     strategy:
       matrix:
         container:
