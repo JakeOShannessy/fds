@@ -45,6 +45,9 @@ jobs:
         build_type:
           - "Debug"
           - "Release"
+    defaults:
+      run:
+        shell: bash
     steps:
     - name: Install prerequisites (dnf)
       if: matrix.container != 'ubuntu:24.04'
