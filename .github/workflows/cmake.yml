@@ -100,8 +100,16 @@ jobs:
         echo "FC=mpiifx" >> $GITHUB_ENV
 
     - name: build fds
+      if: matrix.mpi == 'intelmpi'
       run: |
         source /opt/intel/oneapi/setvars.sh
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        cmake --build builddir -j
+
+    - name: build fds
+      if: matrix.mpi != 'intelmpi'
+      run: |
+        module load openmpi
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j
 
