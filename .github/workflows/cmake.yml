@@ -48,7 +48,7 @@ jobs:
     steps:
     - name: Install prerequisites (dnf)
       if: matrix.container != 'ubuntu:24.04'
-      run: dnf install -y git gcc make cmake sudo
+      run: dnf install -y git gcc make cmake sudo environment-modules
     - name: Install prerequisites (apt)
       if: matrix.container == 'ubuntu:24.04'
       run: |
