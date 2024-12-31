@@ -56,7 +56,7 @@ jobs:
       if: matrix.container == 'ubuntu:24.04'
       run: |
         apt-get -y update
-        apt-get -y install -y git gcc make cmake sudo
+        apt-get -y install -y git gcc make cmake sudo environment-modules
 
     # Setup OneAPI, icx is necessary for third-party libs
     - uses: rscohn2/setup-oneapi@v0
