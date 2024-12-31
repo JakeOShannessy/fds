@@ -110,7 +110,7 @@ jobs:
       if: matrix.mpi != 'intelmpi'
       run: |
         source /etc/profile.d/modules.sh
-        module load openmpi
+        module load mpi
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j
 
