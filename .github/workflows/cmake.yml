@@ -38,7 +38,7 @@ jobs:
         container:
           # - "fedora:40"
           - "rockylinux:9"
-          # - "ubuntu:24.04"
+          - "ubuntu:24.04"
         mpi:
           - "intelmpi"
           - "openmpi"
@@ -110,10 +110,16 @@ jobs:
         cmake --build builddir -j
 
     - name: build fds
-      if: matrix.mpi != 'intelmpi'
+      if: matrix.mpi != 'intelmpi'  && matrix.container == 'rockylinux:9'
       run: |
         source /etc/profile.d/modules.sh
         module load mpi
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        cmake --build builddir -j
+
+    - name: build fds
+      if: matrix.mpi != 'intelmpi'  && matrix.container == 'ubuntu:24.04'
+      run: |
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j
 
