@@ -98,8 +98,8 @@ jobs:
       if: runner.os == 'Linux' && matrix.mpi == 'intelmpi'
       shell: bash
       run: |
-        echo "CC=icx" >> $GITHUB_ENV
-        echo "CXX=icx" >> $GITHUB_ENV
+        echo "CC=mpiicx" >> $GITHUB_ENV
+        echo "CXX=mpiicx" >> $GITHUB_ENV
         echo "FC=mpiifx" >> $GITHUB_ENV
 
     - name: build fds
