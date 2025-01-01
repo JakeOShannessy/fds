@@ -87,7 +87,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: set linux-gnu compiler
-      if: runner.os == 'Linux' && matrix.mpi == 'openmpi'
+      if: matrix.mpi == 'openmpi'
       shell: bash
       run: |
         echo "CC=gcc" >> $GITHUB_ENV
@@ -95,7 +95,7 @@ jobs:
         echo "FC=gfortran" >> $GITHUB_ENV
 
     - name: set linux-gnu compiler
-      if: runner.os == 'Linux' && matrix.mpi == 'intelmpi'
+      if: matrix.mpi == 'intelmpi'
       shell: bash
       run: |
         echo "CC=mpiicx" >> $GITHUB_ENV
@@ -211,5 +211,5 @@ jobs:
     - name: build fds
       run: |
         call Build\Scripts\setup_intel_compilers.bat
-        cmake -B builddir -S . -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SUNDIALS=NO -DUSE_HYPRE=NO
+        cmake -B builddir -S . -DCMAKE_C_COMPILER=icx -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SUNDIALS=OFF -DUSE_HYPRE=ON -DHYPRE_FMANGLE=4 -G "NMake Makefiles"
         cmake --build builddir -j

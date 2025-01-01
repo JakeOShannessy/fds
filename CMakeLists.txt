@@ -163,8 +163,10 @@ if(USE_HYPRE)
         include(FetchContent)
         FetchContent_Declare(
             HYPRE
-            GIT_REPOSITORY https://github.com/hypre-space/hypre.git
-            GIT_TAG        cb7597ffd998dc5270c2e32025e799e68048b1cd # v2.32.0
+            # GIT_REPOSITORY https://github.com/hypre-space/hypre.git
+            # GIT_TAG        cb7597ffd998dc5270c2e32025e799e68048b1cd # v2.32.0
+            GIT_REPOSITORY https://github.com/JakeOShannessy/hypre.git
+            GIT_TAG        512a0b9fbf88e4685cbce1d15265f4bc71fcf098 # v2.32.0
             SOURCE_SUBDIR  src
             OVERRIDE_FIND_PACKAGE
         )
