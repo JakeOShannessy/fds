@@ -119,9 +119,10 @@ jobs:
     - name: build fds
       if: endsWith(matrix.compiler_mpi, '_openmpi')
       run: |
+        source /opt/intel/oneapi/setvars.sh
         if [ "${{matrix.container}}" = "rockylinux:9" ]; then
             source /etc/profile.d/modules.sh
-            module load mpi
+            module load mpi/openmpi-x86_64
         fi
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic -DUSE_OPENMP=${{matrix.openmp}}
         cmake --build builddir -j --target fds
@@ -135,9 +136,10 @@ jobs:
     - name: Test
       if: endsWith(matrix.compiler_mpi, '_openmpi')
       run: |
+        source /opt/intel/oneapi/setvars.sh
         if [ "${{matrix.container}}" = "rockylinux:9" ]; then
             source /etc/profile.d/modules.sh
-            module load mpi
+            module load mpi/openmpi-x86_64
         fi
         ctest --test-dir builddir -j --output-on-failure -V
 
