@@ -69,7 +69,6 @@ else()
     set(GIT_STAT "-dirty")
 endif()
 
-target_compile_options(fds PRIVATE -m64)
 target_compile_definitions(fds PRIVATE BUILDDATE_PP="${BUILD_DATE}")
 target_compile_definitions(fds PRIVATE GITHASH_PP="${GIT_HASH}${GIT_STAT}-${GIT_BRANCH}")
 target_compile_definitions(fds PRIVATE GITDATE_PP="${GIT_DATE}")
@@ -128,32 +127,8 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "Intel" )
     target_compile_options(fds PRIVATE /Qdiag-disable:10448)
 endif()
 
-
-# Find or build sundials if the option is set to use it
-if(USE_SUNDIALS)
-    # Unless forced to use the system version, download and build sundials
-    if(NOT(USE_SYSTEM_SUNDIALS))
-        include(FetchContent)
-        # Set some options for building sundials
-        set(ENABLE_MPI ON)
-        set(BUILD_FORTRAN_MODULE_INTERFACE ON)
-        FetchContent_Declare(
-            SUNDIALS
-            GIT_REPOSITORY https://github.com/LLNL/sundials.git
-            GIT_TAG        aaeab8d907c6b7dfca86041401fdc1448f35f826 # v6.7.0
-            OVERRIDE_FIND_PACKAGE
-        )
-        FetchContent_MakeAvailable(SUNDIALS)
-    endif()
-
-    # Use sundials if found
-    if(SUNDIALS_FOUND)
-        find_package(SUNDIALS REQUIRED)
-        target_link_libraries(fds PRIVATE SUNDIALS::fcvode_mod)
-        target_link_libraries(fds PRIVATE SUNDIALS::fnvecserial_mod)
-        target_compile_definitions(fds PRIVATE WITH_SUNDIALS)
-        target_compile_definitions(fds PRIVATE SUNDIALS_PP="${SUNDIALS_VERSION}")
-    endif()
+if(WIN32)
+    set(BUILD_SHARED_LIBS OFF)
 endif()
 
 # Find or build hypre if the option is set to use it
@@ -179,6 +154,36 @@ if(USE_HYPRE)
         target_link_libraries(fds PRIVATE HYPRE)
         target_compile_definitions(fds PRIVATE WITH_HYPRE)
         target_compile_definitions(fds PRIVATE HYPRE_PP="${HYPRE_VERSION}")
+    endif()
+endif()
+
+# Find or build sundials if the option is set to use it
+if(USE_SUNDIALS)
+    # Unless forced to use the system version, download and build sundials
+    if(NOT(USE_SYSTEM_SUNDIALS))
+        include(FetchContent)
+        # Set some options for building sundials
+        set(ENABLE_MPI ON)
+        set(BUILD_FORTRAN_MODULE_INTERFACE ON)
+        if(HYPRE_FOUND)
+            # set(ENABLE_HYPRE ON)
+        endif()
+        FetchContent_Declare(
+            SUNDIALS
+            GIT_REPOSITORY https://github.com/LLNL/sundials.git
+            GIT_TAG        aaeab8d907c6b7dfca86041401fdc1448f35f826 # v6.7.0
+            OVERRIDE_FIND_PACKAGE
+        )
+        FetchContent_MakeAvailable(SUNDIALS)
+    endif()
+
+    # Use sundials if found
+    if(SUNDIALS_FOUND)
+        find_package(SUNDIALS REQUIRED)
+        target_link_libraries(fds PRIVATE SUNDIALS::fcvode_mod)
+        target_link_libraries(fds PRIVATE SUNDIALS::fnvecserial_mod)
+        target_compile_definitions(fds PRIVATE WITH_SUNDIALS)
+        target_compile_definitions(fds PRIVATE SUNDIALS_PP="${SUNDIALS_VERSION}")
     endif()
 endif()
 
