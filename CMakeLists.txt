@@ -150,10 +150,13 @@ if(USE_HYPRE)
     # Unless forced to use the system version, download and build hypre
     if(NOT(USE_SYSTEM_HYPRE))
         include(FetchContent)
+        # As we are not using the system hypre, we need to choose the version we
+        # want
+        set(HYPRE_GIT_VERSION "2.32.0" )
         FetchContent_Declare(
             HYPRE
             # GIT_REPOSITORY https://github.com/hypre-space/hypre.git
-            # GIT_TAG        cb7597ffd998dc5270c2e32025e799e68048b1cd # v2.32.0
+            # GIT_TAG        v${HYPRE_GIT_VERSION}
             GIT_REPOSITORY https://github.com/JakeOShannessy/hypre.git
             GIT_TAG        b6d8c3085af64988f8f8bc21b7aef12ab49c5430 # v2.32.0
             SOURCE_SUBDIR  src
@@ -165,6 +168,11 @@ if(USE_HYPRE)
     # Use hypre if found
     find_package(HYPRE)
     if(HYPRE_FOUND)
+        if(NOT(HYPRE_VERSION))
+            # We aren't using the system version so we'll revert to the git
+            # version
+            set(HYPRE_VERSION "${HYPRE_GIT_VERSION}")
+        endif()
         target_link_libraries(fds PRIVATE HYPRE)
         target_compile_definitions(fds PRIVATE WITH_HYPRE)
         target_compile_definitions(fds PRIVATE HYPRE_PP="${HYPRE_VERSION}")
@@ -176,10 +184,13 @@ if(USE_SUNDIALS)
     # Unless forced to use the system version, download and build sundials
     if(NOT(USE_SYSTEM_SUNDIALS))
         include(FetchContent)
+        # As we are not using the system sundials, we need to choose the version
+        # we want
+        set(SUNDIALS_GIT_VERSION "6.7.0")
         FetchContent_Declare(
             SUNDIALS
             GIT_REPOSITORY https://github.com/LLNL/sundials.git
-            GIT_TAG        aaeab8d907c6b7dfca86041401fdc1448f35f826 # v6.7.0
+            GIT_TAG        v${SUNDIALS_GIT_VERSION}
             OVERRIDE_FIND_PACKAGE
         )
         # Set some options for building sundials
@@ -202,6 +213,11 @@ if(USE_SUNDIALS)
     # Use sundials if found
     find_package(SUNDIALS)
     if(SUNDIALS_FOUND)
+        if(NOT(SUNDIALS_VERSION))
+            # We aren't using the system version so we'll revert to the git
+            # version
+            set(SUNDIALS_VERSION "${SUNDIALS_GIT_VERSION}")
+        endif()
         target_link_libraries(fds PRIVATE SUNDIALS::fcvode_mod)
         target_link_libraries(fds PRIVATE SUNDIALS::fnvecserial_mod)
         target_compile_definitions(fds PRIVATE WITH_SUNDIALS)
