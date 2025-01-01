@@ -84,7 +84,7 @@ jobs:
           mkl
 
     - name: install openmpi
-      if: endsWith(matrix.compiler_mpi, '_openmpi') && startsWith(matrix.container, 'rockylinux') && startsWith(matrix.container, 'fedora')
+      if: endsWith(matrix.compiler_mpi, '_openmpi') && (startsWith(matrix.container, 'rockylinux') || startsWith(matrix.container, 'fedora'))
       run: dnf install -y openmpi-devel
 
     - name: install openmpi
