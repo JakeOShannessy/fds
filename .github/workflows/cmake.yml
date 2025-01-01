@@ -126,6 +126,9 @@ jobs:
         cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
         cmake --build builddir -j --target fds
 
+    - name: Test
+      run: ctest --test-dir builddir -j --output-on-failure -V
+
   cmake-osx:
     # Set the name of this build, variable depending on the OS
     name: cmake ${{ matrix.os }} ${{ matrix.mpi }} ${{ matrix.build_type }}
@@ -157,11 +160,16 @@ jobs:
           echo "FC=gfortran-14" >> $GITHUB_ENV
           echo "OMPI_FC=gfortran-14" >> $GITHUB_ENV
           brew install glew gd zlib json-c
+
       - name: Build
         shell: bash
         run: |
           cmake -B builddir -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
           cmake --build builddir -j1 --target fds
+
+      - name: Test
+        run: ctest --test-dir builddir -j --output-on-failure -V
+
   cmake-windows:
     # build on windows using ifort with intelmpi and mkl based on
     # https://github.com/oneapi-src/oneapi-ci
@@ -216,3 +224,6 @@ jobs:
         call Build\Scripts\setup_intel_compilers.bat
         cmake -B builddir -S . -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SUNDIALS=OFF -DUSE_HYPRE=ON -DHYPRE_FMANGLE=4
         cmake --build builddir -j --target fds
+
+    - name: Test
+      run: ctest --test-dir builddir -j --output-on-failure -V

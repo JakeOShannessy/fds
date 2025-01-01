@@ -216,3 +216,8 @@ if(USE_SUNDIALS)
 endif()
 
 install(TARGETS fds)
+
+include(CTest)
+enable_testing()
+add_test(NAME "FDS Executes"
+    COMMAND fds)
