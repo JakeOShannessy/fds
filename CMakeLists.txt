@@ -15,7 +15,8 @@ option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 # The existing FDS makefile links MKL statically, but this is optional and can
 # be changed to dynamic
-option(STATIC_MKL          "Statically link MKL"                      ON)
+set(MKL_LINK static CACHE STRING "Linking method for MKL (static or dynamic)")
+set_property(CACHE MKL_LINK PROPERTY STRINGS static dynamic)
 
 add_executable(fds
     Source/main.f90
@@ -54,15 +55,29 @@ add_executable(fds
 )
 target_include_directories(fds PRIVATE .)
 
-# Get various properties about the time and git revision
-execute_process(COMMAND date "+%b %d\\, %Y  %T"          OUTPUT_VARIABLE BUILD_DATE_XLF OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND date "+%b %d, %Y  %T"            OUTPUT_VARIABLE BUILD_DATE     OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND git log -1 --format=%cd          OUTPUT_VARIABLE GIT_DATE       OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND git rev-parse --abbrev-ref HEAD  OUTPUT_VARIABLE GIT_BRANCH     OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND git describe --long --abbrev=7   OUTPUT_VARIABLE GIT_HASH       OUTPUT_STRIP_TRAILING_WHITESPACE)
+# Get various properties about the time and git revision. These can be
+# overridden which is important for building in situations where we don't have
+# the git repo.
+if (NOT(BUILD_DATE_XLF))
+    execute_process(COMMAND date "+%b %d\\, %Y  %T"          OUTPUT_VARIABLE BUILD_DATE_XLF OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+if (NOT(BUILD_DATE))
+    execute_process(COMMAND date "+%b %d, %Y  %T"            OUTPUT_VARIABLE BUILD_DATE     OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+if (NOT(GIT_DATE))
+    execute_process(COMMAND git log -1 --format=%cd          OUTPUT_VARIABLE GIT_DATE       OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+if (NOT(GIT_BRANCH))
+    execute_process(COMMAND git rev-parse --abbrev-ref HEAD  OUTPUT_VARIABLE GIT_BRANCH     OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+if (NOT(GIT_HASH))
+    execute_process(COMMAND git describe --long --abbrev=7   OUTPUT_VARIABLE GIT_HASH       OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 
 # TODO: this will only change on configure
-execute_process(COMMAND git diff --shortstat Source/*.f90 OUTPUT_VARIABLE GIT_DIRTY)
+if (NOT(GIT_HASH))
+    execute_process(COMMAND git diff --shortstat Source/*.f90 OUTPUT_VARIABLE GIT_DIRTY)
+endif()
 if (GIT_DIRTY STREQUAL "")
     set(GIT_STAT "")
 else()
@@ -79,10 +94,6 @@ target_link_libraries(fds PRIVATE MPI::MPI_Fortran)
 
 # FDS use lp64 (4-byte integer), MKL often defaults to ilp64 (8-byte integer)
 set(MKL_INTERFACE lp64)
-# If we have elected to link MKL statically, set that option
-if(STATIC_MKL)
-    set(MKL_LINK static)
-endif()
 # Turn on BLACS
 set(ENABLE_BLACS ON)
 # We don't need ScaLAPACK
