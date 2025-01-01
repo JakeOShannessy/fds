@@ -60,10 +60,8 @@ target_include_directories(fds PRIVATE .)
 # Get various properties about the time and git revision. These can be
 # overridden which is important for building in situations where we don't have
 # the git repo.
-if (NOT(WIN32))
-    if (NOT(BUILD_DATE_XLF))
-        string(TIMESTAMP BUILD_DATE_XLF "%b %d\\, %Y  %H:%M:%S")
-    endif()
+if (NOT(WIN32) AND NOT(BUILD_DATE_XLF))
+    string(TIMESTAMP BUILD_DATE_XLF "%b %d\\, %Y  %H:%M:%S")
 endif()
 if (NOT(BUILD_DATE))
     string(TIMESTAMP BUILD_DATE "%b %d, %Y  %H:%M:%S ")
@@ -77,9 +75,7 @@ endif()
 if (NOT(GIT_HASH))
     execute_process(COMMAND git describe --long --abbrev=7   OUTPUT_VARIABLE GIT_HASH       OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
-
-# TODO: this will only change on configure
-if (NOT(GIT_HASH))
+if (NOT(GIT_DIRTY))
     execute_process(COMMAND git diff --shortstat Source/*.f90 OUTPUT_VARIABLE GIT_DIRTY)
 endif()
 if (GIT_DIRTY STREQUAL "")
