@@ -66,6 +66,16 @@ jobs:
 
     # Setup OneAPI, icx is necessary for third-party libs
     - uses: rscohn2/setup-oneapi@v0
+      if: endsWith(matrix.compiler_mpi, '_intelmpi') !=  true
+      with:
+        components: |
+          ifx
+          icx
+          mkl
+
+    # Setup OneAPI, icx is necessary for third-party libs
+    - uses: rscohn2/setup-oneapi@v0
+      if: endsWith(matrix.compiler_mpi, '_intelmpi')
       with:
         components: |
           ifx
