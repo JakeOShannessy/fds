@@ -152,7 +152,10 @@ if(USE_HYPRE)
         FetchContent_Declare(
             HYPRE
             # GIT_REPOSITORY https://github.com/hypre-space/hypre.git
-            # GIT_TAG        v${HYPRE_GIT_VERSION}
+            # GIT_TAG        b6d8c3085af64988f8f8bc21b7aef12ab49c5430 # v${HYPRE_GIT_VERSION}
+
+            # Currently we need to refer directly to a commit which contains a
+            # patch to handle HYPRE_FMANGLE
             GIT_REPOSITORY https://github.com/JakeOShannessy/hypre.git
             GIT_TAG        b6d8c3085af64988f8f8bc21b7aef12ab49c5430 # v2.32.0
             SOURCE_SUBDIR  src
