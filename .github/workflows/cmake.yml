@@ -87,6 +87,7 @@ jobs:
         sudo apt-get -y install libopenmpi-dev openmpi-bin
 
     - uses: actions/checkout@v4
+    - run: git config --global --add safe.directory /__w/fds/fds
 
     - name: set linux-gnu compiler
       if: matrix.mpi == 'openmpi'
