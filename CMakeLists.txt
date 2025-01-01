@@ -162,18 +162,24 @@ if(USE_SUNDIALS)
     # Unless forced to use the system version, download and build sundials
     if(NOT(USE_SYSTEM_SUNDIALS))
         include(FetchContent)
-        # Set some options for building sundials
-        set(ENABLE_MPI ON)
-        set(BUILD_FORTRAN_MODULE_INTERFACE ON)
-        if(HYPRE_FOUND)
-            # set(ENABLE_HYPRE ON)
-        endif()
         FetchContent_Declare(
             SUNDIALS
             GIT_REPOSITORY https://github.com/LLNL/sundials.git
             GIT_TAG        aaeab8d907c6b7dfca86041401fdc1448f35f826 # v6.7.0
             OVERRIDE_FIND_PACKAGE
         )
+        # Set some options for building sundials
+        set(ENABLE_MPI ON CACHE BOOL "" FORCE)
+        set(BUILD_FORTRAN_MODULE_INTERFACE ON CACHE BOOL "" FORCE)
+        set(EXAMPLES_ENABLE_C OFF CACHE BOOL "" FORCE)
+        set(EXAMPLES_ENABLE_CXX OFF CACHE BOOL "" FORCE)
+        set(EXAMPLES_ENABLE_F2003 OFF CACHE BOOL "" FORCE)
+        set(EXAMPLES_INSTALL OFF CACHE BOOL "" FORCE)
+        set(ENABLE_OPENMP ON CACHE BOOL "" FORCE)
+        set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+        if(HYPRE_FOUND)
+            # set(ENABLE_HYPRE ON CACHE BOOL "" FORCE)
+        endif()
         FetchContent_MakeAvailable(SUNDIALS)
     endif()
 
