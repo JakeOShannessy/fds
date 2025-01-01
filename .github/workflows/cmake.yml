@@ -127,6 +127,21 @@ jobs:
         cmake --build builddir -j --target fds
 
     - name: Test
+      if: matrix.mpi == 'intelmpi'
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        module load mpi
+        ctest --test-dir builddir -j --output-on-failure -V
+
+    - name: Test
+      if: matrix.mpi != 'intelmpi'  && matrix.container == 'rockylinux:9'
+      run: |
+        source /etc/profile.d/modules.sh
+        module load mpi
+        ctest --test-dir builddir -j --output-on-failure -V
+
+    - name: Test
+      if: matrix.mpi != 'intelmpi'  && matrix.container == 'ubuntu:24.04'
       run: ctest --test-dir builddir -j --output-on-failure -V
 
   cmake-osx:
@@ -226,4 +241,6 @@ jobs:
         cmake --build builddir -j --target fds
 
     - name: Test
-      run: ctest --test-dir builddir -j --output-on-failure -V
+      run: |
+        call Build\Scripts\setup_intel_compilers.bat
+        ctest --test-dir builddir -j --output-on-failure -V
