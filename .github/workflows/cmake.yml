@@ -169,14 +169,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Setup OneAPI, icx is necessary for third-party libs
-      - uses: rscohn2/setup-oneapi@v0
-        with:
-          components: |
-            ifx
-            icx
-            impi
-            mkl
+      # # Setup OneAPI, icx is necessary for third-party libs
+      # - uses: rscohn2/setup-oneapi@v0
+      #   with:
+      #     components: |
+      #       ifx
+      #       icx
+      #       impi
+      #       mkl
 
       - name: install openmpi
         run: brew install open-mpi
