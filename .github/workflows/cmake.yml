@@ -43,7 +43,7 @@ jobs:
           - "ubuntu:24.04"
         compiler_mpi:
           - "intel_intelmpi"
-          - "intel_openmpi"
+          # - "intel_openmpi"
           - "gnu_openmpi"
         openmp:
           - "ON"
@@ -64,18 +64,18 @@ jobs:
         apt-get -y update
         apt-get -y install -y git gcc make cmake sudo environment-modules
 
-    # Setup OneAPI, icx is necessary for third-party libs
-    - uses: rscohn2/setup-oneapi@v0
-      if: endsWith(matrix.compiler_mpi, '_intelmpi') !=  true
-      with:
-        components: |
-          ifx
-          icx
-          mkl
+    # # Setup OneAPI, icx is necessary for third-party libs
+    # - uses: rscohn2/setup-oneapi@v0
+    #   if: endsWith(matrix.compiler_mpi, '_intelmpi') !=  true
+    #   with:
+    #     components: |
+    #       ifx
+    #       icx
+    #       mkl
 
     # Setup OneAPI, icx is necessary for third-party libs
     - uses: rscohn2/setup-oneapi@v0
-      if: endsWith(matrix.compiler_mpi, '_intelmpi')
+      # if: endsWith(matrix.compiler_mpi, '_intelmpi')
       with:
         components: |
           ifx
@@ -122,7 +122,7 @@ jobs:
     - name: build fds
       if: endsWith(matrix.compiler_mpi, '_openmpi')
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        # source /opt/intel/oneapi/setvars.sh
         if [ "${{matrix.container}}" = "rockylinux:9" ]; then
             source /etc/profile.d/modules.sh
             module load mpi/openmpi-x86_64
