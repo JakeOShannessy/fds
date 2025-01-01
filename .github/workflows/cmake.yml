@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   cmake-linux:
-    name: cmake ${{ matrix.container }} ${{ matrix.mpi }} ${{ matrix.build_type }}
+    name: ${{ matrix.container }} ${{ matrix.mpi }} ${{ matrix.build_type }}
     runs-on: [ubuntu-latest]
     container: ${{ matrix.container }}
     strategy:
@@ -130,7 +130,6 @@ jobs:
       if: matrix.mpi == 'intelmpi'
       run: |
         source /opt/intel/oneapi/setvars.sh
-        module load mpi
         ctest --test-dir builddir -j --output-on-failure -V
 
     - name: Test
@@ -146,7 +145,7 @@ jobs:
 
   cmake-osx:
     # Set the name of this build, variable depending on the OS
-    name: cmake ${{ matrix.os }} ${{ matrix.mpi }} ${{ matrix.build_type }}
+    name: ${{ matrix.os }} ${{ matrix.mpi }} ${{ matrix.build_type }}
     strategy:
       fail-fast: false
       # The matrix sets all the different combinations of builds, e.g. platforms
