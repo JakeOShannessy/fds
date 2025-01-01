@@ -81,11 +81,13 @@ target_link_libraries(fds PRIVATE MPI::MPI_Fortran)
 set(MKL_INTERFACE lp64)
 # If we have elected to link MKL statically, set that option
 if(STATIC_MKL)
-    set(MKL_LINK static)
+set(MKL_LINK static)
 endif()
 # Turn on BLACS
 set(ENABLE_BLACS ON)
-set(ENABLE_SCALAPACK ON)
+# We don't need ScaLAPACK
+# set(ENABLE_SCALAPACK OFF)
+# set(ENABLE_SCALAPACK ON)
 # Use MKL if found
 find_package(MKL CONFIG)
 if (MKL_FOUND)
