@@ -74,11 +74,11 @@ jobs:
           mkl
 
     - name: install openmpi
-      if: endsWith(matrix.compiler_mpi, '_openmpi') && matrix.container != 'ubuntu:24.04'
+      if: endsWith(matrix.compiler_mpi, '_openmpi') && startsWith(matrix.container, 'rockylinux') && startsWith(matrix.container, 'fedora')
       run: dnf install -y openmpi-devel
 
     - name: install openmpi
-      if: endsWith(matrix.compiler_mpi, '_openmpi') && matrix.container == 'ubuntu:24.04'
+      if: endsWith(matrix.compiler_mpi, '_openmpi') && startsWith(matrix.container, 'ubuntu')
       run: |
         sudo apt-get -y update
         sudo apt-get -y install libopenmpi-dev openmpi-bin
@@ -158,6 +158,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      # Setup OneAPI, icx is necessary for third-party libs
+      - uses: rscohn2/setup-oneapi@v0
+        with:
+          components: |
+            ifx
+            icx
+            impi
+            mkl
 
       - name: install openmpi
         run: brew install open-mpi
