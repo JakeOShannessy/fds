@@ -13,6 +13,8 @@ option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 option(USE_SUNDIALS        "Use the sundials library"                 ON)
 option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
+option(USE_OPENMP          "Use OpenMP"                               ON)
+
 # The existing FDS makefile links MKL statically, but this is optional and can
 # be changed to dynamic
 set(MKL_LINK static CACHE STRING "Linking method for MKL (static or dynamic)")
@@ -112,12 +114,10 @@ if (MKL_FOUND)
     target_link_libraries(fds PRIVATE MKL::MKL)
 endif()
 
-# Use OpenMP if found
-find_package(OpenMP)
-if(OpenMP_Fortran_FOUND)
+if (USE_OPENMP)
+    # Use OpenMP
+    find_package(OpenMP REQUIRED)
     target_link_libraries(fds PUBLIC OpenMP::OpenMP_Fortran)
-else()
-    message(STATUS "OpenMP was not found. OpenMP will not be linked.")
 endif()
 
 # Set compiler flags for various compilers

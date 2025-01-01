@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   cmake-linux:
-    name: ${{ matrix.container }} ${{ matrix.mpi }} ${{ matrix.build_type }}
+    name: ${{ matrix.container }} ${{ matrix.mpi }} openmp=${{ matrix.openmp }} ${{ matrix.build_type }}
     runs-on: [ubuntu-latest]
     container: ${{ matrix.container }}
     strategy:
@@ -44,6 +44,9 @@ jobs:
         mpi:
           - "intelmpi"
           - "openmpi"
+        openmp:
+          - "ON"
+          - "OFF"
         build_type:
           - "Debug"
           - "Release"
@@ -109,7 +112,7 @@ jobs:
       if: matrix.mpi == 'intelmpi'
       run: |
         source /opt/intel/oneapi/setvars.sh
-        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic -DUSE_OPENMP=${{matrix.openmp}}
         cmake --build builddir -j --target fds
 
     - name: build fds
@@ -117,13 +120,13 @@ jobs:
       run: |
         source /etc/profile.d/modules.sh
         module load mpi
-        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic -DUSE_OPENMP=${{matrix.openmp}}
         cmake --build builddir -j --target fds
 
     - name: build fds
       if: matrix.mpi != 'intelmpi'  && matrix.container == 'ubuntu:24.04'
       run: |
-        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic -DUSE_OPENMP=${{matrix.openmp}}
         cmake --build builddir -j --target fds
 
     - name: Test
