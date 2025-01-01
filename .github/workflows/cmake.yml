@@ -138,7 +138,7 @@ jobs:
 
   cmake-osx:
     # Set the name of this build, variable depending on the OS
-    name: ${{ matrix.os }} ${{ matrix.mpi }} openmp=${{ matrix.openmp }} ${{ matrix.build_type }}
+    name: ${{ matrix.os }} ${{ matrix.compiler_mpi }} openmp=${{ matrix.openmp }} ${{ matrix.build_type }}
     strategy:
       fail-fast: false
       # The matrix sets all the different combinations of builds, e.g. platforms
@@ -146,8 +146,8 @@ jobs:
       matrix:
         os:
           - macos-latest
-        mpi:
-          - "openmpi"
+        compiler_mpi:
+          - "gnu_openmpi"
         openmp:
           - "ON"
           - "OFF"
@@ -172,6 +172,7 @@ jobs:
         run: brew install open-mpi
 
       - name: set macos gcc
+        if: startsWith(matrix.compiler_mpi, 'gnu_')
         shell: bash
         run: |
           echo "CC=gcc-14" >> $GITHUB_ENV
@@ -180,14 +181,39 @@ jobs:
           echo "OMPI_FC=gfortran-14" >> $GITHUB_ENV
           brew install glew gd zlib json-c
 
+      - name: set macos intel
+        if: startsWith(matrix.compiler_mpi, 'intel_')
+        shell: bash
+        run: |
+          echo "CC=icx" >> $GITHUB_ENV
+          echo "CXX=icx" >> $GITHUB_ENV
+          echo "FC=mpiifx" >> $GITHUB_ENV
+          echo "OMPI_FC=mpiifx" >> $GITHUB_ENV
+
       - name: Build
+        if: startsWith(matrix.compiler_mpi, 'gnu_')
         shell: bash
         run: |
           cmake -B builddir -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_OPENMP=${{matrix.openmp}}
           cmake --build builddir -j1 --target fds
 
+      - name: Build
+        if: startsWith(matrix.compiler_mpi, 'intel_')
+        shell: bash
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          cmake -B builddir -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_OPENMP=${{matrix.openmp}}
+          cmake --build builddir -j1 --target fds
+
       - name: Test
+        if: startsWith(matrix.compiler_mpi, 'gnu_')
         run: ctest --test-dir builddir -j --output-on-failure -V
+
+      - name: Test
+        if: startsWith(matrix.compiler_mpi, 'intel_')
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          ctest --test-dir builddir -j --output-on-failure -V
 
   cmake-windows:
     # build on windows using ifort with intelmpi and mkl based on
