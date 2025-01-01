@@ -117,13 +117,13 @@ jobs:
       run: |
         source /etc/profile.d/modules.sh
         module load mpi
-        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic
         cmake --build builddir -j --target fds
 
     - name: build fds
       if: matrix.mpi != 'intelmpi'  && matrix.container == 'ubuntu:24.04'
       run: |
-        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic
         cmake --build builddir -j --target fds
 
     - name: Test
