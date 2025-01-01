@@ -109,7 +109,7 @@ jobs:
       if: matrix.mpi == 'intelmpi'
       run: |
         source /opt/intel/oneapi/setvars.sh
-        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        cmake -B builddir -S . -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DMKL_LINK=dynamic
         cmake --build builddir -j --target fds
 
     - name: build fds
