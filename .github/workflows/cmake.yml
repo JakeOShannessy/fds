@@ -74,6 +74,19 @@ jobs:
     #       mkl
 
     # Setup OneAPI, icx is necessary for third-party libs
+    - name: Set up Spack
+      uses: spack/setup-spack@v2
+      with:
+        ref: develop      # Spack version (examples: develop, releases/v0.23)
+        buildcache: true  # Configure oci://ghcr.io/spack/github-actions-buildcache
+        color: true       # Force color output (SPACK_COLOR=always)
+        path: spack       # Where to clone Spack
+    - run: |
+        spack install intel-oneapi-compilers
+        spack install intel-oneapi-compilers-classic
+        spack compiler add $(spack location -i intel-oneapi-compilers)/compiler/latest/bin
+        spack compiler add $(spack location -i intel-oneapi-compilers-classic)/bin
+
     - uses: rscohn2/setup-oneapi@v0
       # if: endsWith(matrix.compiler_mpi, '_intelmpi')
       with:

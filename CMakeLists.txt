@@ -15,6 +15,9 @@ option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 option(USE_OPENMP          "Use OpenMP"                               ON)
 
+option(BUILD_DOCUMENTATION "Build and install API docs"               OFF)
+option(BUILD_MANUALS       "Build and install manuals"                OFF)
+
 # The existing FDS makefile links MKL statically, but this is optional and can
 # be changed to dynamic
 set(MKL_LINK static CACHE STRING "Linking method for MKL (static or dynamic)")
@@ -231,3 +234,57 @@ include(CTest)
 enable_testing()
 add_test(NAME "FDS Executes"
     COMMAND fds)
+
+if(BUILD_DOCUMENTATION)
+    find_package(Doxygen)
+    if(NOT DOXYGEN_FOUND)
+        message(FATAL_ERROR "Doxygen is needed to build the documentation.")
+    endif()
+
+    add_custom_target(doc ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/Manuals/Code_Documentation/Doxyfile"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Building code documentation"
+        VERBATIM)
+
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
+endif()
+
+if(BUILD_MANUALS)
+    include(FetchContent)
+
+    FetchContent_Declare(
+        test_bundle
+        URL      https://github.com/firemodels/test_bundles/archive/refs/tags/FDS_TEST.tar.gz
+        # URL_HASH MD5=5588a7b18261c20068beabfb4f530b87
+    )
+    FetchContent_MakeAvailable(test_bundle)
+    set(TEST_BUNDLE ${test_bundle_SOURCE_DIR})
+
+    # include(UseLATEX.cmake)
+    # find_package(LATEX COMPONENTS PDFLATEX BIBTEX)
+    # 	# First pass.
+    #     add_custom_target( latex-prebuild
+    #     COMMAND ${PDFLATEX_COMPILER}  -output-directory ${OUT_DIRECTORY} -draftmode -interaction=nonstopmode ${MAIN_TEX}
+    #     COMMENT "First pass"
+    #     WORKING_DIRECTORY ${WORKINGDIR}
+    #     DEPENDS ${MAIN_TEX})
+
+    # # Generate what citation found in the latex file.
+    # add_custom_target(latex-bibreferences
+    #     COMMAND ${BIBTEX_COMPILER} build/main.aux
+    #     COMMENT "Create references"
+    #     DEPENDS  ${CMAKE_SOURCE_DIR}/build/main.aux)
+    #     ADD_DEPENDENCIES( latex-bibreferences latex-prebuild)
+
+    # # Second pass - generate the final pdf.
+    # add_custom_target(latex-pdf
+    #         COMMAND ${PDFLATEX_COMPILER} -output-directory ${OUT_DIRECTORY}  ${MAIN_TEX}
+    #         WORKING_DIRECTORY ${WORKINGDIR}
+    #         COMMENT "Second pass"
+    #         DEPENDS  ${MAIN_TEX})
+    # ADD_DEPENDENCIES( latex-pdf latex-prebuild latex-bibreferences)
+
+    # ADD_CUSTOM_TARGET(all-formats ALL) # Entry point of execution.
+    # ADD_DEPENDENCIES( all-formats latex-pdf)
+endif()
