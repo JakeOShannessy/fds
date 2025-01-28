@@ -7,10 +7,10 @@ project(
 )
 enable_language(Fortran)
 
-option(USE_HYPRE           "Use the hypre library"                    ON)
+option(USE_HYPRE           "Use the hypre library"                    OFF)
 option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 
-option(USE_SUNDIALS        "Use the sundials library"                 ON)
+option(USE_SUNDIALS        "Use the sundials library"                 OFF)
 option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 option(USE_OPENMP          "Use OpenMP"                               ON)
@@ -45,6 +45,7 @@ add_executable(fds
     Source/ctrl.f90
     Source/hvac.f90
     Source/mass.f90
+    Source/json.f90
     Source/imkl.f90
     Source/wall.f90
     Source/fire.f90
@@ -223,6 +224,27 @@ if(USE_SUNDIALS)
         target_compile_definitions(fds PRIVATE WITH_SUNDIALS)
         target_compile_definitions(fds PRIVATE SUNDIALS_PP="${SUNDIALS_VERSION}")
     endif()
+endif()
+
+if (NOT WIN32)
+    # On non-Windows platforms use the system version of json-fortran
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(json-fortran REQUIRED IMPORTED_TARGET json-fortran)
+    target_link_libraries(fds PRIVATE PkgConfig::json-fortran)
+    target_include_directories(fds PRIVATE /usr/lib64/gfortran/modules)
+else()
+    include(FetchContent)
+    # There are currently issues with the version fo json-fortran provided by
+    # vcpkg, therefore we fetch and build json-fortran ourselves.
+    FetchContent_Declare(
+        jsonfortran
+        GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
+        GIT_TAG        3ab8f98209871875325c6985dd0e50085d1c82c2
+    )
+    set(ENABLE_TESTS OFF CACHE INTERNAL "Turn off json-fortran tests")
+    FetchContent_MakeAvailable(jsonfortran)
+    add_dependencies(fds jsonfortran-static)
+    target_link_libraries(fds PRIVATE jsonfortran-static)
 endif()
 
 install(TARGETS fds)
