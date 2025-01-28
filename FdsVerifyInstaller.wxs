@@ -51,7 +51,7 @@
                             <Component Id='FdsVerifyComponent'
                                 Guid='cb6c1bd1-4f6d-4ce0-adb4-8bdc935d6f88' Win64="yes">
                                 <File Id='FdsVerifyEXE' Name='fds-verify.exe'
-                                    Source='dist/bin/fds.exe'
+                                    Source='Build/cmakeb/impi_intel_win_rel/fds.exe'
                                     KeyPath='yes'>
                                 </File>
                             </Component>
