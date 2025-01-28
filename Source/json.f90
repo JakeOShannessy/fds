@@ -27,6 +27,7 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
     use,intrinsic :: iso_fortran_env, only: wp => real64
     use :: json_module, rk => json_rk
     USE DEVICE_VARIABLES, ONLY: DEVICE_TYPE,DEVICE,N_DEVC,PROPERTY_TYPE,N_PROP,PROPERTY
+    USE OUTPUT_CLOCKS
 
     CHARACTER(FN_LENGTH), INTENT(IN)  :: JSON_OUTPUT_PATH
     INTEGER :: N, NM, NQ
@@ -36,8 +37,8 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
     TYPE (LAGRANGIAN_PARTICLE_CLASS_TYPE), POINTER :: LPC=>NULL()
     TYPE (OBSTRUCTION_TYPE), POINTER :: OB=>NULL()
     TYPE (REACTION_TYPE),POINTER :: RN=>NULL()
-    TYPE(SURFACE_TYPE),POINTER:: SF=>NULL()
-    TYPE(VENTS_TYPE), POINTER :: VT=>NULL()
+    TYPE (SURFACE_TYPE),POINTER:: SF=>NULL()
+    TYPE (VENTS_TYPE), POINTER :: VT=>NULL()
 
 
     type(json_core) :: json
@@ -60,35 +61,28 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
     call json%create_object(obj,'dump')
     call json%add(p, obj)
     call json%add(obj, 'nframes', NFRAMES)
+    call json%add(obj, 'plot3d_quantity', PLOT3D_QUANTITY)
+    call json%add(obj, 'dt_bndf', DT_BNDF)
+    call json%add(obj, 'dt_cpu', DT_CPU)
+    call json%add(obj, 'dt_ctrl', DT_CTRL)
+    call json%add(obj, 'dt_devc', DT_DEVC)
+    call json%add(obj, 'dt_flush', DT_FLUSH)
+    call json%add(obj, 'dt_geom', DT_GEOM)
+    call json%add(obj, 'dt_hrr', DT_HRR)
+    call json%add(obj, 'dt_hvac', DT_HVAC)
+    call json%add(obj, 'dt_isof', DT_ISOF)
+    call json%add(obj, 'dt_mass', DT_MASS)
+    call json%add(obj, 'dt_part', DT_PART)
+    call json%add(obj, 'dt_pl3d', DT_PL3D)
+    call json%add(obj, 'dt_prof', DT_PROF)
+    call json%add(obj, 'dt_radf', DT_RADF)
+    call json%add(obj, 'dt_restart', DT_RESTART)
+    call json%add(obj, 'dt_slcf', DT_SLCF)
+    call json%add(obj, 'dt_sl3d', DT_SL3D)
+    call json%add(obj, 'dt_smoke3d', DT_SMOKE3D)
+    call json%add(obj, 'dt_uvw', DT_UVW)
+    call json%add(obj, 'dt_tmp', DT_TMP)
     nullify(obj)
-    ! DT_BNDF      = -1._EB
-    ! DT_CPU       =  HUGE(EB)
-    ! DT_CTRL      = -1._EB
-    ! DT_DEVC      = -1._EB
-    ! DT_FLUSH     = -1._EB
-    ! DT_GEOM      =  HUGE(EB)
-    ! DT_HRR       = -1._EB
-    ! DT_HVAC      = -1._EB
-    ! DT_ISOF      = -1._EB
-    ! DT_MASS      = -1._EB
-    ! DT_PART      = -1._EB
-    ! DT_PL3D      =  HUGE(EB)
-    ! IF (DT_PL3D_SPE /= HUGE(EB)) THEN
-    !    call json%add(obj, 'dt_pl3d', DT_PL3D)
-    ! ENDIF
-
-    ! DT_PROF      = -1._EB
-    ! DT_RADF      =  HUGE(EB)
-    ! DT_RESTART   =  HUGE(EB)
-    ! DT_SLCF      = -1._EB
-    ! IF (DT_SLCF /= -1._EB) THEN
-    !    call json%add(obj, 'dt_slcf', DT_PL3D)
-    ! ENDIF
-    ! DT_SL3D      =  (T_END-T_BEGIN)/5._EB
-    ! DT_SMOKE3D   = -1._EB
-    ! DT_UVW       =  HUGE(EB)
-    ! DT_TMP       =  HUGE(EB)
-    ! DT_SPEC      =  HUGE(EB)
 
     call json%create_object(obj,'time')
     call json%add(p, obj)
