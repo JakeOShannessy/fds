@@ -529,9 +529,8 @@ SPRINKLER_INSERT_LOOP: DO KS=1,N_DEVC
          ELSE
             CALL GET_IJK(BC%X,BC%Y,BC%Z,NM,XI,YJ,ZK,II,JJ,KK)
             IC = CELL_INDEX(II,JJ,KK)
-            BC%IIG = II
-            BC%JJG = JJ
-            BC%KKG = KK
+            BC%IIG = II; BC%JJG = JJ; BC%KKG = KK
+            BC%II  = II; BC%JJ  = JJ; BC%KK  = KK
             IF (.NOT.CELL(IC)%SOLID) EXIT CHOOSE_COORDS
          ENDIF
 
@@ -781,8 +780,9 @@ INSERT_TYPE_LOOP: DO INSERT_TYPE = 1,2
          ENDIF
 
          ! Ember flag to be used for outputs
-         IF (INSERT_TYPE==1 .AND. &
-            (ANY(SF%EMBER_GENERATION_HEIGHT>=0._EB) .OR. SF%EMBER_YIELD>0._EB)) LP%EMBER=.TRUE.
+
+         IF (INSERT_TYPE==1 .AND. (ANY(SF%EMBER_GENERATION_HEIGHT>=0._EB) .OR. SF%EMBER_YIELD>0._EB)) LP%EMBER=.TRUE.
+
          ! Assign particle position on the cell face
 
          CALL RANDOM_NUMBER(RN)
@@ -864,6 +864,7 @@ INSERT_TYPE_LOOP: DO INSERT_TYPE = 1,2
 
          ! Update idicies in case offset puts location in a different cell
          CALL GET_IJK(BC%X,BC%Y,BC%Z,NM,XI,YJ,ZK,BC%IIG,BC%JJG,BC%KKG)
+         BC%II = BC%IIG; BC%JJ = BC%JJG; BC%KK = BC%KKG
 
          ! Save the insertion time (TP) and scalar property (SP) for the particle
 
@@ -871,7 +872,7 @@ INSERT_TYPE_LOOP: DO INSERT_TYPE = 1,2
 
          CALL INITIALIZE_SINGLE_PARTICLE
 
-         IF (INSERT_TYPE==2) MESHES(NM)%BOUNDARY_ONE_D(LP%OD_INDEX)%TMP = TMP_PART
+         IF (INSERT_TYPE==2 .AND. LPC%SOLID_PARTICLE) MESHES(NM)%BOUNDARY_ONE_D(LP%OD_INDEX)%TMP = TMP_PART
 
          IF (.NOT.LPC%MASSLESS_TRACER .AND. .NOT.LPC%MASSLESS_TARGET) MASS_SUM = MASS_SUM + LP%PWT*LP%MASS
 
@@ -1012,9 +1013,9 @@ IN_Z0 = X_OFFSET + IN%Z0
 ! If the INIT volume is outside the current mesh, return
 
 IF (IN%SHAPE/='RING' .AND. IN%SHAPE/='LINE') THEN
-   IF (IN_X1>XF*ONE_M_EPS .OR. IN_X2<XS*ONE_P_EPS .OR. &
-       IN_Y1>YF*ONE_M_EPS .OR. IN_Y2<YS*ONE_P_EPS .OR. &
-       IN_Z1>ZF*ONE_M_EPS .OR. IN_Z2<ZS*ONE_P_EPS) RETURN
+   IF ((IN_X1-XF)>-50._EB*TWO_EPSILON_EB .OR. (IN_X2-XS)<50._EB*TWO_EPSILON_EB .OR. &
+       (IN_Y1-YF)>-50._EB*TWO_EPSILON_EB .OR. (IN_Y2-YS)<50._EB*TWO_EPSILON_EB .OR. &
+       (IN_Z1-ZF)>-50._EB*TWO_EPSILON_EB .OR. (IN_Z2-ZS)<50._EB*TWO_EPSILON_EB) RETURN
 ELSE
    IF (IN_X1>XF .OR. IN_X2<XS .OR. IN_Y1>YF .OR. IN_Y2<YS .OR. IN_Z1>ZF .OR. IN_Z2<ZS) RETURN
 ENDIF
@@ -1034,8 +1035,53 @@ Z2 = MIN(IN_Z2,ZF)
 
 ! Compute the volume of the INIT region
 
-SELECT CASE(IN%SHAPE)
+GEOM_SELECT: SELECT CASE(IN%SHAPE)
    CASE('BLOCK')
+      IF (ABS(X2-X1)<TWO_EPSILON_EB) THEN
+         IF (ABS(Y2-Y1)<TWO_EPSILON_EB) THEN
+            INSERT_VOLUME = Z2 - Z1
+            INPUT_VOLUME = IN_Z2 - IN_Z1
+         ELSE
+            IF(ABS(Z2-Z1)<TWO_EPSILON_EB) THEN
+               INSERT_VOLUME = Y2 - Y1
+               INPUT_VOLUME = IN_Y2 - IN_Y1
+            ELSE
+               INSERT_VOLUME = (Y2-Y1)*(Z2-Z1)
+               INPUT_VOLUME = (IN_Y2-IN_Y1)*(IN_Z2-IN_Z1)
+            ENDIF
+         ENDIF
+         EXIT GEOM_SELECT
+      ENDIF
+      IF (ABS(Y2-Y1)<TWO_EPSILON_EB) THEN
+         IF (ABS(X2-X1)<TWO_EPSILON_EB) THEN
+            INSERT_VOLUME = Z2 - Z1
+            INPUT_VOLUME = IN_Z2 - IN_Z1
+         ELSE
+            IF(ABS(Z2-Z1)<TWO_EPSILON_EB) THEN
+               INSERT_VOLUME = X2 - X1
+               INPUT_VOLUME = IN_X2 - IN_X1
+            ELSE
+               INSERT_VOLUME = (X2-X1)*(Z2-Z1)
+               INPUT_VOLUME = (IN_X2-IN_X1)*(IN_Z2-IN_Z1)
+            ENDIF
+         ENDIF
+         EXIT GEOM_SELECT
+      ENDIF
+      IF (ABS(Z2-Z1)<TWO_EPSILON_EB) THEN
+         IF (ABS(Y2-Y1)<TWO_EPSILON_EB) THEN
+            INSERT_VOLUME = X2 - X1
+            INPUT_VOLUME = IN_X2 - IN_X1
+         ELSE
+            IF(ABS(X2-X1)<TWO_EPSILON_EB) THEN
+               INSERT_VOLUME = Y2 - Y1
+               INPUT_VOLUME = IN_Y2 - IN_Y1
+            ELSE
+               INSERT_VOLUME = (X2-X1)*(Y2-Y1)
+               INPUT_VOLUME = (IN_X2-IN_X1)*(IN_Y2-IN_Y1)
+            ENDIF
+         ENDIF
+         EXIT GEOM_SELECT
+      ENDIF
       INSERT_VOLUME = (X2-X1)*(Y2-Y1)*(Z2-Z1)
       INPUT_VOLUME  = (IN_X2-IN_X1)*(IN_Y2-IN_Y1)*(IN_Z2-IN_Z1)
    CASE('CONE','CYLINDER')
@@ -1068,7 +1114,7 @@ SELECT CASE(IN%SHAPE)
       ! proportion of the circle bounding box within mesh
       INSERT_VOLUME = 0._EB
       INPUT_VOLUME  = 0._EB
-END SELECT
+END SELECT GEOM_SELECT
 
 IF (INSERT_VOLUME<=0._EB .AND. IN%MASS_PER_VOLUME>0._EB) RETURN
 
@@ -1215,7 +1261,7 @@ TOTAL_OR_PER_CELL: IF (IN%N_PARTICLES > 0) THEN
       LP%DX = DX(II)
       LP%DY = DY(JJ)
       LP%DZ = DZ(KK)
-      LP%INITIALIZATION_INDEX = INIT_INDEX
+      LP%INIT_INDEX = INIT_INDEX
 
       ! Initialize particle properties
 
@@ -1399,7 +1445,6 @@ IF (N_INSERT>0) THEN
          LP%PWT = LP%PWT*PWT0
       ENDIF
       IF (ANY(IN%PATH_RAMP_INDEX>0)) LP%PATH_PARTICLE=.TRUE.
-      LP%INIT_INDEX = INIT_INDEX
    ENDDO
 
 ENDIF
@@ -1427,9 +1472,8 @@ USE OUTPUT_DATA, ONLY: N_PROF
 INTEGER :: ND
 TYPE (PROFILE_TYPE), POINTER :: PF
 
-BC%IIG = II
-BC%JJG = JJ
-BC%KKG = KK
+BC%IIG = II; BC%JJG = JJ; BC%KKG = KK
+BC%II  = II; BC%JJ  = JJ; BC%KK  = KK
 LP%U = IN%U0
 LP%V = IN%V0
 LP%W = IN%W0
@@ -1841,6 +1885,7 @@ PARTICLE_LOOP: DO IP=1,NLP
          IF (LP%PATH_PARTICLE) THEN
             CALL MOVE_IN_GAS
             CALL GET_IJK(BC%X,BC%Y,BC%Z,NM,XI,YJ,ZK,BC%IIG,BC%JJG,BC%KKG)
+            BC%II = BC%IIG; BC%JJ = BC%JJG; BC%KK = BC%KKG
          ENDIF
          EXIT TIME_STEP_LOOP
       ENDIF
@@ -1894,6 +1939,7 @@ PARTICLE_LOOP: DO IP=1,NLP
       ! Determine the cell indices of the new particle location.
 
       CALL GET_IJK(BC%X,BC%Y,BC%Z,NM,XI,YJ,ZK,BC%IIG,BC%JJG,BC%KKG)
+      BC%II = BC%IIG; BC%JJ = BC%JJG; BC%KK = BC%KKG
 
       ! If the particle is not near a boundary cell, cycle.
 
@@ -2475,6 +2521,7 @@ PARTICLE_LOOP: DO IP=1,NLP
 
       ! Store containing volume at new location
       CALL GET_IJK(BC%X,BC%Y,BC%Z,NM,XI,YJ,ZK,BC%IIG,BC%JJG,BC%KKG)
+      BC%II = BC%IIG; BC%JJ = BC%JJG; BC%KK = BC%KKG
       CALL GET_RVC(NM,BC%IIG,BC%JJG,BC%KKG,LP%RVC)
 
    ENDDO TIME_STEP_LOOP
@@ -2571,7 +2618,7 @@ DO AXIS=IAXIS,KAXIS
    IF (ICC>0) THEN
       CALL GET_FACE_IDW(AXIS,IL,JL,KL,BC%X,BC%Y,BC%Z,WGT(:,:,:,AXIS))
    ELSE
-      CALL GET_FACE_TLW(AXIS,IL,JL,KL,BC%X,BC%Y,BC%Z,WGT(:,:,:,AXIS))
+      CALL GET_FACE_TLW(AXIS,IL,JL,KL,BC%X,BC%Y,BC%Z,WGT(:,:,:,AXIS),VEL_G)
    ENDIF
    VEL_G_INT(AXIS) = SUM(VEL_G*WGT(:,:,:,AXIS))
 ENDDO
@@ -2987,11 +3034,12 @@ END SUBROUTINE MOVE_IN_GAS
 
 SUBROUTINE VENT_PARTICLE_EXTRACTION(HIT_SOLID,EXTRACT,WALL_INDEX,CFACE_INDEX)
 
+USE GEOMETRY_FUNCTIONS, ONLY: SEARCH_OTHER_MESHES
 LOGICAL, INTENT(OUT) :: EXTRACT
 LOGICAL, INTENT(INOUT) :: HIT_SOLID
 LOGICAL :: SET_EXTRACT
 INTEGER, INTENT(IN), OPTIONAL :: WALL_INDEX,CFACE_INDEX
-INTEGER :: SURF_INDEX
+INTEGER :: SURF_INDEX,NOM,IIO,JJO,KKO
 TYPE (BOUNDARY_PROP1_TYPE), POINTER :: B1
 TYPE (BOUNDARY_PROP2_TYPE), POINTER :: B2
 TYPE (BOUNDARY_COORD_TYPE), POINTER :: BCX
@@ -3020,8 +3068,10 @@ IF (ACCUMULATE_WATER .AND. .NOT.LP%SPLAT .AND. LPC%ADHERE_TO_SOLID) THEN
    LP%SPLAT = .TRUE.
 ENDIF
 
-IF ( B1%U_NORMAL>SURFACE(SURF_INDEX)%PARTICLE_EXTRACTION_VELOCITY .OR. &
+IF_EXTRACT: IF ( B1%U_NORMAL>SURFACE(SURF_INDEX)%PARTICLE_EXTRACTION_VELOCITY .OR. &
      (POROUS_FLOOR .AND. BC%Z<ZS .AND. LPC%LIQUID_DROPLET) ) THEN
+   CALL SEARCH_OTHER_MESHES(BC%X,BC%Y,BC%Z,NOM,IIO,JJO,KKO)
+   IF (POROUS_FLOOR .AND. BC%Z<ZS .AND. LPC%LIQUID_DROPLET .AND. NOM>0) EXIT IF_EXTRACT  ! Do not remove particle still in domain
    IF (B1%NODE_INDEX > 0) THEN
       IF (DUCTNODE(B1%NODE_INDEX)%TRANSPORT_PARTICLES) THEN
          SELECT CASE (BCX%IOR)
@@ -3102,7 +3152,7 @@ IF ( B1%U_NORMAL>SURFACE(SURF_INDEX)%PARTICLE_EXTRACTION_VELOCITY .OR. &
       BC%X=-1.E6_EB
       EXTRACT = .TRUE.
    ENDIF
-ENDIF
+ENDIF IF_EXTRACT
 
 END SUBROUTINE VENT_PARTICLE_EXTRACTION
 
@@ -3245,13 +3295,16 @@ END SUBROUTINE GET_FACE_IDW
 !> \param P_Y Sample point location in y
 !> \param P_Z Sample point location in z
 !> \param TLW 2x2x2 matrix of weights for cartesian faces
+!> \param V 2x2x2 array of velocity box corner values
 
-SUBROUTINE GET_FACE_TLW(AXIS,I,J,K,P_X,P_Y,P_Z,TLW)
+SUBROUTINE GET_FACE_TLW(AXIS,I,J,K,P_X,P_Y,P_Z,TLW,V)
 
 REAL(EB), INTENT(IN) :: P_X,P_Y,P_Z
 REAL(EB), INTENT(OUT) :: TLW(0:1,0:1,0:1)
 INTEGER, INTENT(IN) :: AXIS,I,J,K
+REAL(EB), INTENT(INOUT) :: V(2,2,2)
 REAL(EB) :: P,PP,R,RR,S,SS
+INTEGER :: IWC(-3:3)
 REAL(EB), POINTER :: X_F(:),Y_F(:),Z_F(:)
 
 TLW=0._EB
@@ -3269,12 +3322,74 @@ P = (P_X-X_F(I))/(X_F(I+1)-X_F(I))
 R = (P_Y-Y_F(J))/(Y_F(J+1)-Y_F(J))
 S = (P_Z-Z_F(K))/(Z_F(K+1)-Z_F(K))
 
-IF (AXIS/=IAXIS .AND. IIG_OLD> I .AND. CELL(IC_OLD)%WALL_INDEX(-1)>0) P = 1._EB
-IF (AXIS/=IAXIS .AND. IIG_OLD==I .AND. CELL(IC_OLD)%WALL_INDEX( 1)>0) P = 0._EB
-IF (AXIS/=JAXIS .AND. JJG_OLD> J .AND. CELL(IC_OLD)%WALL_INDEX(-2)>0) R = 1._EB
-IF (AXIS/=JAXIS .AND. JJG_OLD==J .AND. CELL(IC_OLD)%WALL_INDEX( 2)>0) R = 0._EB
-IF (AXIS/=KAXIS .AND. KKG_OLD> K .AND. CELL(IC_OLD)%WALL_INDEX(-3)>0) S = 1._EB
-IF (AXIS/=KAXIS .AND. KKG_OLD==K .AND. CELL(IC_OLD)%WALL_INDEX( 3)>0) S = 0._EB
+IWC = CELL(IC_OLD)%WALL_INDEX
+IF (NEAR_WALL_PARTICLE_INTERPOLATION) THEN
+
+   IF (AXIS/=IAXIS .AND. IIG_OLD> I .AND. IWC(-1)>0) THEN
+      IF (WALL(IWC(-1))%BOUNDARY_TYPE==SOLID_BOUNDARY) THEN
+         P=(P_X-X_F(I))/(BOUNDARY_COORD(WALL(IWC(-1))%BC_INDEX)%X-X_F(I))
+         SELECT CASE(AXIS)
+            CASE(JAXIS); V(1,:,:)=SURFACE(WALL(IWC(-1))%SURF_INDEX)%VEL_T(1)
+            CASE(KAXIS); V(1,:,:)=SURFACE(WALL(IWC(-1))%SURF_INDEX)%VEL_T(2)
+         END SELECT
+      ENDIF
+   ENDIF
+   IF (AXIS/=IAXIS .AND. IIG_OLD==I .AND. IWC( 1)>0) THEN
+      IF (WALL(IWC( 1))%BOUNDARY_TYPE==SOLID_BOUNDARY) THEN
+         P=(P_X-X_F(I))/(BOUNDARY_COORD(WALL(IWC( 1))%BC_INDEX)%X-X_F(I))
+         SELECT CASE(AXIS)
+            CASE(JAXIS); V(2,:,:)=SURFACE(WALL(IWC( 1))%SURF_INDEX)%VEL_T(1)
+            CASE(KAXIS); V(2,:,:)=SURFACE(WALL(IWC( 1))%SURF_INDEX)%VEL_T(2)
+         END SELECT
+      ENDIF
+   ENDIF
+
+   IF (AXIS/=JAXIS .AND. JJG_OLD> J .AND. IWC(-2)>0) THEN
+      IF (WALL(IWC(-2))%BOUNDARY_TYPE==SOLID_BOUNDARY) THEN
+         R=(P_Y-Y_F(J))/(BOUNDARY_COORD(WALL(IWC(-2))%BC_INDEX)%Y-Y_F(J))
+         SELECT CASE(AXIS)
+            CASE(IAXIS); V(:,1,:)=SURFACE(WALL(IWC(-2))%SURF_INDEX)%VEL_T(1)
+            CASE(KAXIS); V(:,1,:)=SURFACE(WALL(IWC(-2))%SURF_INDEX)%VEL_T(2)
+         END SELECT
+      ENDIF
+   ENDIF
+   IF (AXIS/=JAXIS .AND. JJG_OLD==J .AND. IWC( 2)>0) THEN
+      IF (WALL(IWC( 2))%BOUNDARY_TYPE==SOLID_BOUNDARY) THEN
+         R=(P_Y-Y_F(J))/(BOUNDARY_COORD(WALL(IWC( 2))%BC_INDEX)%Y-Y_F(J))
+         SELECT CASE(AXIS)
+            CASE(IAXIS); V(:,2,:)=SURFACE(WALL(IWC( 2))%SURF_INDEX)%VEL_T(1)
+            CASE(KAXIS); V(:,2,:)=SURFACE(WALL(IWC( 2))%SURF_INDEX)%VEL_T(2)
+         END SELECT
+      ENDIF
+   ENDIF
+
+   IF (AXIS/=KAXIS .AND. KKG_OLD> K .AND. IWC(-3)>0) THEN
+      IF (WALL(IWC(-3))%BOUNDARY_TYPE==SOLID_BOUNDARY) THEN
+         S=(P_Z-Z_F(K))/(BOUNDARY_COORD(WALL(IWC(-3))%BC_INDEX)%Z-Z_F(K))
+         SELECT CASE(AXIS)
+            CASE(IAXIS); V(:,:,1)=SURFACE(WALL(IWC(-3))%SURF_INDEX)%VEL_T(1)
+            CASE(JAXIS); V(:,:,1)=SURFACE(WALL(IWC(-3))%SURF_INDEX)%VEL_T(2)
+         END SELECT
+      ENDIF
+   ENDIF
+   IF (AXIS/=KAXIS .AND. KKG_OLD==K .AND. IWC( 3)>0) THEN
+      IF (WALL(IWC( 3))%BOUNDARY_TYPE==SOLID_BOUNDARY) THEN
+         S=(P_Z-Z_F(K))/(BOUNDARY_COORD(WALL(IWC( 3))%BC_INDEX)%Z-Z_F(K))
+         SELECT CASE(AXIS)
+            CASE(IAXIS); V(:,:,2)=SURFACE(WALL(IWC( 3))%SURF_INDEX)%VEL_T(1)
+            CASE(JAXIS); V(:,:,2)=SURFACE(WALL(IWC( 3))%SURF_INDEX)%VEL_T(2)
+         END SELECT
+      ENDIF
+   ENDIF
+
+ELSE
+   IF (AXIS/=IAXIS .AND. IIG_OLD> I .AND. IWC(-1)>0) P = 1._EB
+   IF (AXIS/=IAXIS .AND. IIG_OLD==I .AND. IWC( 1)>0) P = 0._EB
+   IF (AXIS/=JAXIS .AND. JJG_OLD> J .AND. IWC(-2)>0) R = 1._EB
+   IF (AXIS/=JAXIS .AND. JJG_OLD==J .AND. IWC( 2)>0) R = 0._EB
+   IF (AXIS/=KAXIS .AND. KKG_OLD> K .AND. IWC(-3)>0) S = 1._EB
+   IF (AXIS/=KAXIS .AND. KKG_OLD==K .AND. IWC( 3)>0) S = 0._EB
+ENDIF
 
 PP = 1._EB-P
 RR = 1._EB-R
@@ -3309,9 +3424,9 @@ DX1 => DX
 DX2 => DY
 DX3 => DZ
 SELECT CASE (AXIS)
-CASE(IAXIS); DX1 => DXN
-CASE(JAXIS); DX2 => DYN
-CASE(KAXIS); DX3 => DZN
+   CASE(IAXIS); DX1 => DXN
+   CASE(JAXIS); DX2 => DYN
+   CASE(KAXIS); DX3 => DZN
 END SELECT
 
 DO KK=K,K+1
@@ -3487,18 +3602,21 @@ REAL(EB) :: TNOW
 TNOW=CURRENT_TIME()
 CALL POINT_TO_MESH(NM)
 
-IF (MESHES(NM)%NLP==0) THEN
-   IF (N_LP_ARRAY_INDICES > 0) CALL PARTICLE_RUNNING_AVERAGES
+IF (NLP > 0) PARTICLES_EXISTED = .TRUE.
+
+IF (.NOT. PARTICLES_EXISTED .OR. ((.NOT. LIQUID_DROPLETS) .AND. (.NOT. SOLID_PARTICLES))) THEN
+   ! No particles ever existed in the mesh or only MASSLESS defined, then there is nothing to do.
    T_USED(8)=T_USED(8)+CURRENT_TIME()-TNOW
-   RETURN
-ELSE
-   ALLOCATE(PART_WARNING(NLP))
-   PART_WARNING(NLP)=0
+   RETURN   
 ENDIF
 
-! Working arrays
+IF (LIQUID_DROPLETS) THEN
 
-IF (N_LP_ARRAY_INDICES>0) THEN
+   ALLOCATE(PART_WARNING(NLP))
+   PART_WARNING=0
+
+   ! Working arrays
+
    MVAP_TOT => WORK7
    MVAP_TOT = 0._EB
    DO IW = 1,N_EXTERNAL_WALL_CELLS+N_INTERNAL_WALL_CELLS
@@ -3513,19 +3631,18 @@ IF (N_LP_ARRAY_INDICES>0) THEN
       B2 => BOUNDARY_PROP2(CFA%B2_INDEX)
       B2%WORK1 = B1%TMP_F
    ENDDO
-ENDIF
-
-IF (ANY(LAGRANGIAN_PARTICLE_CLASS(:)%LIQUID_DROPLET)) THEN
+   
    RHO_INTERIM => WORK1 ; RHO_INTERIM = RHO
    TMP_INTERIM => WORK2 ; TMP_INTERIM = TMP
-   ZZ_INTERIM  => SCALAR_WORK1 ; ZZ_INTERIM = ZZ
+   ZZ_INTERIM  => SWORK1 ; ZZ_INTERIM(:,:,:,1:) = ZZ(:,:,:,1:)
+
 ENDIF
 
 ! Keep a running average of surface mass and cooling
 
 DO N_LPC=1,N_LAGRANGIAN_CLASSES
    LPC => LAGRANGIAN_PARTICLE_CLASS(N_LPC)
-   IF (LPC%ARRAY_INDEX>0) THEN
+   IF (LPC%ARRAY_INDEX > 0) THEN
       IF (LPC%LIQUID_DROPLET) THEN
          DO IW = 1,N_EXTERNAL_WALL_CELLS+N_INTERNAL_WALL_CELLS
             WC => WALL(IW)
@@ -3552,6 +3669,14 @@ DO N_LPC=1,N_LAGRANGIAN_CLASSES
       ENDDO
    ENDIF
 ENDDO
+
+IF (.NOT. LIQUID_DROPLETS .AND. SOLID_PARTICLES) THEN
+   ! If only solid particles, then no evaporation. Just update averages and remove burned away particles.
+   CALL PARTICLE_RUNNING_AVERAGES
+   CALL REMOVE_PARTICLES(T,NM)
+   T_USED(8)=T_USED(8)+CURRENT_TIME()-TNOW
+   RETURN
+ENDIF
 
 ! Loop over all types of evaporative species
 
@@ -3784,11 +3909,11 @@ SPECIES_LOOP: DO Z_INDEX = 1,N_TRACKED_SPECIES
 
                ! Add energy losses and gains to overall energy budget array
 
-               Q_DOT(7,NM) = Q_DOT(7,NM) - Q_RAD*WGT/DT  ! Q_PART
-               Q_DOT(3,NM) = Q_DOT(3,NM) + M_VAP*H_S_B*WGT/DT                       ! Q_CONV
-               Q_DOT(2,NM) = Q_DOT(2,NM) + Q_RAD*WGT/DT                             ! Q_RADI
+               Q_DOT(8) = Q_DOT(8) - Q_RAD*WGT/DT  ! Q_PART
+               Q_DOT(4) = Q_DOT(4) + M_VAP*H_S_B*WGT/DT                       ! Q_CONV
+               Q_DOT(3) = Q_DOT(3) + Q_RAD*WGT/DT                             ! Q_RADI
 
-               IF (LPC%Z_INDEX>0) M_DOT(LPC%Z_INDEX,NM) = M_DOT(LPC%Z_INDEX,NM) + WGT*M_VAP/DT/LPC%ADJUST_EVAPORATION
+               IF (LPC%Z_INDEX>0) M_DOT(LPC%Z_INDEX) = M_DOT(LPC%Z_INDEX) + WGT*M_VAP/DT/LPC%ADJUST_EVAPORATION
 
                ! Keep track of total mass evaporated in cell
 
@@ -4091,7 +4216,16 @@ SPECIES_LOOP: DO Z_INDEX = 1,N_TRACKED_SPECIES
                CALL GET_TEMPERATURE(TMP_G_NEW,H_NEW/M_GAS_NEW,ZZ_GET2)
                IF (TMP_G_NEW < 0._EB) THEN
                   DT_SUBSTEP = DT_SUBSTEP * 0.5_EB
-                  CYCLE TIME_ITERATION_LOOP
+                  IF (DT_SUBSTEP <= 0.00001_EB*DT) THEN
+                     DT_SUBSTEP = DT_SUBSTEP * 2.0_EB
+                     TMP_G_NEW = 1._EB
+                     IF (.NOT. BTEST(PART_WARNING(IP),3)) THEN
+                        WRITE(LU_ERR,'(A,I0,A,I0,A,I0)') 'WARNING TMP_G_N < 0. Mesh: ',NM,'Particle: ',IP,' Tag: ',LP%TAG
+                        PART_WARNING(IP) = IBSET(PART_WARNING(IP),3)
+                     ENDIF
+                  ELSE
+                     CYCLE TIME_ITERATION_LOOP
+                  ENDIF
                ENDIF
 
                ! Limit gas temperature change
@@ -4100,9 +4234,9 @@ SPECIES_LOOP: DO Z_INDEX = 1,N_TRACKED_SPECIES
                   DT_SUBSTEP = DT_SUBSTEP * 0.5_EB
                   IF (DT_SUBSTEP <= 0.00001_EB*DT) THEN
                      DT_SUBSTEP = DT_SUBSTEP * 2.0_EB
-                     IF (.NOT. BTEST(PART_WARNING(IP),3)) THEN
-                        WRITE(LU_ERR,'(A,I0,A,I0,A,I0)') 'WARNING Delta TMP_G.Mesh: ',NM,'Particle: ',IP,' Tag: ',LP%TAG
-                        PART_WARNING(IP) = IBSET(PART_WARNING(IP),3)
+                     IF (.NOT. BTEST(PART_WARNING(IP),4)) THEN
+                        WRITE(LU_ERR,'(A,I0,A,I0,A,I0)') 'WARNING Delta TMP_G. Mesh: ',NM,'Particle: ',IP,' Tag: ',LP%TAG
+                        PART_WARNING(IP) = IBSET(PART_WARNING(IP),4)
                      ENDIF
                   ELSE
                      CYCLE TIME_ITERATION_LOOP
@@ -4116,9 +4250,9 @@ SPECIES_LOOP: DO Z_INDEX = 1,N_TRACKED_SPECIES
                   DT_SUBSTEP = DT_SUBSTEP * 0.5_EB
                   IF (DT_SUBSTEP <= 0.00001_EB*DT) THEN
                      DT_SUBSTEP = DT_SUBSTEP * 2.0_EB
-                     IF (.NOT. BTEST(PART_WARNING(IP),4)) THEN
-                        WRITE(LU_ERR,'(A,I0,A,I0,A,I0)') 'WARNING TMP_G_N < TMP_D_N.Mesh: ',NM,'Particle: ',IP,' Tag: ',LP%TAG
-                        PART_WARNING(IP) = IBSET(PART_WARNING(IP),4)
+                     IF (.NOT. BTEST(PART_WARNING(IP),5)) THEN
+                        WRITE(LU_ERR,'(A,I0,A,I0,A,I0)') 'WARNING TMP_G_N < TMP_D_N. Mesh: ',NM,'Particle: ',IP,' Tag: ',LP%TAG
+                        PART_WARNING(IP) = IBSET(PART_WARNING(IP),5)
                      ENDIF
                   ELSE
                      CYCLE TIME_ITERATION_LOOP
@@ -4150,12 +4284,12 @@ SPECIES_LOOP: DO Z_INDEX = 1,N_TRACKED_SPECIES
 
                ! Add energy losses and gains to overall energy budget array
 
-               Q_DOT(7,NM) = Q_DOT(7,NM) - (Q_CON_GAS + Q_CON_WALL + Q_RAD)*WGT/DT  ! Q_PART
-               Q_DOT(3,NM) = Q_DOT(3,NM) + M_VAP*H_S_B*WGT/DT                       ! Q_CONV
-               Q_DOT(2,NM) = Q_DOT(2,NM) + Q_RAD*WGT/DT                             ! Q_RADI
-               Q_DOT(4,NM) = Q_DOT(4,NM) + Q_CON_WALL*WGT/DT                        ! Q_COND
+               Q_DOT(8) = Q_DOT(8) - (Q_CON_GAS + Q_CON_WALL + Q_RAD)*WGT/DT  ! Q_PART
+               Q_DOT(4) = Q_DOT(4) + M_VAP*H_S_B*WGT/DT                       ! Q_CONV
+               Q_DOT(3) = Q_DOT(3) + Q_RAD*WGT/DT                             ! Q_RADI
+               Q_DOT(5) = Q_DOT(5) + Q_CON_WALL*WGT/DT                        ! Q_COND
 
-               IF (LPC%Z_INDEX>0) M_DOT(LPC%Z_INDEX,NM) = M_DOT(LPC%Z_INDEX,NM) + WGT*M_VAP/DT/LPC%ADJUST_EVAPORATION
+               IF (LPC%Z_INDEX>0) M_DOT(LPC%Z_INDEX) = M_DOT(LPC%Z_INDEX) + WGT*M_VAP/DT/LPC%ADJUST_EVAPORATION
 
                ! Keep track of total mass evaporated in cell
 
@@ -4221,7 +4355,7 @@ DEALLOCATE(PART_WARNING)
 
 ! Sum up various quantities used in running averages
 
-IF (N_LP_ARRAY_INDICES > 0) CALL PARTICLE_RUNNING_AVERAGES
+CALL PARTICLE_RUNNING_AVERAGES
 
 ! Remove PARTICLEs that have completely evaporated
 
@@ -4600,17 +4734,17 @@ ENDIF
 IF (NOM/=0 .AND. NOM/=NM) THEN
 
    OS => OMESH(NOM)%PARTICLE_SEND_BUFFER
-   IF (OS%N_REALS+LP%N_REALS>OS%N_REALS_DIM) THEN
-      CALL REALLOCATE_STORAGE_ARRAYS(OS,N_REALS=OS%N_REALS_DIM,N_REALS_NEW=OS%N_REALS_DIM+10*LP%N_REALS)
-      OS%N_REALS_DIM = OS%N_REALS_DIM + 10*LP%N_REALS
+   IF (OS%N_REALS+LPC%N_REALS>OS%N_REALS_DIM) THEN
+      CALL REALLOCATE_STORAGE_ARRAYS(OS,N_REALS=OS%N_REALS_DIM,N_REALS_NEW=OS%N_REALS_DIM+10*LPC%N_REALS)
+      OS%N_REALS_DIM = OS%N_REALS_DIM + 10*LPC%N_REALS
    ENDIF
-   IF (OS%N_INTEGERS+LP%N_INTEGERS>OS%N_INTEGERS_DIM) THEN
-      CALL REALLOCATE_STORAGE_ARRAYS(OS,N_INTEGERS=OS%N_INTEGERS_DIM,N_INTEGERS_NEW=OS%N_INTEGERS_DIM+10*LP%N_INTEGERS)
-      OS%N_INTEGERS_DIM = OS%N_INTEGERS_DIM + 10*LP%N_INTEGERS
+   IF (OS%N_INTEGERS+LPC%N_INTEGERS>OS%N_INTEGERS_DIM) THEN
+      CALL REALLOCATE_STORAGE_ARRAYS(OS,N_INTEGERS=OS%N_INTEGERS_DIM,N_INTEGERS_NEW=OS%N_INTEGERS_DIM+10*LPC%N_INTEGERS)
+      OS%N_INTEGERS_DIM = OS%N_INTEGERS_DIM + 10*LPC%N_INTEGERS
    ENDIF
-   IF (OS%N_LOGICALS+LP%N_LOGICALS>OS%N_LOGICALS_DIM) THEN
-      CALL REALLOCATE_STORAGE_ARRAYS(OS,N_LOGICALS=OS%N_LOGICALS_DIM,N_LOGICALS_NEW=OS%N_LOGICALS_DIM+10*LP%N_LOGICALS)
-      OS%N_LOGICALS_DIM = OS%N_LOGICALS_DIM + 10*LP%N_LOGICALS
+   IF (OS%N_LOGICALS+LPC%N_LOGICALS>OS%N_LOGICALS_DIM) THEN
+      CALL REALLOCATE_STORAGE_ARRAYS(OS,N_LOGICALS=OS%N_LOGICALS_DIM,N_LOGICALS_NEW=OS%N_LOGICALS_DIM+10*LPC%N_LOGICALS)
+      OS%N_LOGICALS_DIM = OS%N_LOGICALS_DIM + 10*LPC%N_LOGICALS
    ENDIF
 
    OS%N_ITEMS = OS%N_ITEMS + 1
