@@ -234,12 +234,12 @@ if (NOT WIN32)
     target_include_directories(fds PRIVATE /usr/lib64/gfortran/modules)
 else()
     include(FetchContent)
-    # There are currently issues with the version fo json-fortran provided by
+    # There are currently issues with the version of json-fortran provided by
     # vcpkg, therefore we fetch and build json-fortran ourselves.
     FetchContent_Declare(
         jsonfortran
         GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
-        GIT_TAG        3ab8f98209871875325c6985dd0e50085d1c82c2
+        GIT_TAG        2dc8abefd416ec791b100a37d92d5be9f8fa46e8
     )
     set(ENABLE_TESTS OFF CACHE INTERNAL "Turn off json-fortran tests")
     FetchContent_MakeAvailable(jsonfortran)
