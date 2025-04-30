@@ -11,18 +11,18 @@ test:
 
 # Build the debug binaries
 build:
-    cmake -B cbuild -DCMAKE_BUILD_TYPE=Debug -G Ninja
-    cmake --build cbuild -j6 --verbose
-    cmake --install cbuild --prefix dist-debug
+    cmake -B cbuild -DCMAKE_BUILD_TYPE=Debug
+    cmake --build cbuild -j6 --verbose --config Debug
+    cmake --install cbuild --prefix dist-debug --config Debug
 
 # Build the release binaries
 build-release:
-    cmake -B cbuild -DCMAKE_BUILD_TYPE=Release -G Ninja
-    cmake --build cbuild -v -j6
-    cmake --install cbuild --prefix dist
+    cmake -B cbuild -DCMAKE_BUILD_TYPE=Release
+    cmake --build cbuild -v -j6 --config Release
+    cmake --install cbuild --prefix dist --config Release
 
 # Build release and create MSI package
-package-windows:
+package-windows: build-release
     candle "FdsVerifyInstaller.wxs"
     light "FdsVerifyInstaller.wixobj"
 
