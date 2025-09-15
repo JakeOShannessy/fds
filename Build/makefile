@@ -94,14 +94,14 @@ else
   COMMON_MKL_INTEL_LIBS = ${COMMON_MKL_LIBS} ${MKLLIBDIR}/libmkl_blacs_intelmpi_lp64.a
   LFLAGSMKL_INTEL = -Wl,--start-group ${COMMON_MKL_INTEL_LIBS} ${MKLLIBDIR}/libmkl_sequential.a -Wl,--end-group
   LFLAGSMKL_INTEL_OPENMP = -Wl,--start-group ${COMMON_MKL_INTEL_LIBS} ${MKLLIBDIR}/libmkl_intel_thread.a -liomp5 -Wl,--end-group
-  
+
   # ompi_gnu_linux targets
   COMMON_MKL_GNU_LIBS = ${MKLLIBDIR}/libmkl_gf_lp64.a ${MKLLIBDIR}/libmkl_core.a ${MKLLIBDIR}/libmkl_blacs_openmpi_lp64.a -lpthread -lm -ldl
   LFLAGSMKL_GNU_OPENMP = -Wl,--start-group ${COMMON_MKL_GNU_LIBS} ${MKLLIBDIR}/libmkl_gnu_thread.a -lgomp -Wl,--end-group
- 
+
   # ompi_intel_linux target
   LFLAGSMKL_OMPI_INTEL_LINUX = -Wl,--start-group ${COMMON_MKL_LIBS} ${MKLLIBDIR}/libmkl_sequential.a ${MKLLIBDIR}/libmkl_blacs_openmpi_lp64.a  -Wl,--end-group
-  
+
   # ompi_gnu_osx and ompi_intel_osx targets
   COMMON_MKL_CUSTOM_LIBS = ${COMMON_MKL_LIBS} ${MKLLIBDIR}/libmkl_blacs_custom_lp64.a
   LFLAGSMKL_CUSTOM = ${COMMON_MKL_CUSTOM_LIBS} ${MKLLIBDIR}/libmkl_sequential.a
@@ -125,7 +125,7 @@ ifdef HYPRE_HOME # This assumes the HYPRE library is available.
 endif
 
 obj_mpi = prec.o cons.o chem.o prop.o devc.o type.o data.o mesh.o func.o gsmv.o smvv.o rcal.o turb.o soot.o \
-          pois.o geom.o ccib.o radi.o part.o vege.o ctrl.o hvac.o mass.o imkl.o \
+          pois.o geom.o ccib.o radi.o part.o vege.o ctrl.o hvac.o mass.o imkl.o json.o \
           wall.o fire.o velo.o pres.o init.o dump.o read.o divg.o main.o
 
 objwin_mpi = $(obj_mpi:.o=.obj)
@@ -238,7 +238,7 @@ impi_intel_win_openmp_db : setup_win $(objwin_mpi)
 
 # Linux Intel Fortran Compiler and Intel MPI
 
-impi_intel_linux : FFLAGS = -O2 -ipo -no-wrap-margin $(GITINFO) $(FFLAGSMKL) $(FFLAGS_HYPRE) $(FFLAGS_SUNDIALS) -DUSE_IFPORT 
+impi_intel_linux : FFLAGS = -O2 -ipo -no-wrap-margin $(GITINFO) $(FFLAGSMKL) $(FFLAGS_HYPRE) $(FFLAGS_SUNDIALS) -DUSE_IFPORT
 impi_intel_linux : LFLAGSMKL = $(LFLAGSMKL_INTEL) $(LFLAGS_HYPRE) $(LFLAGS_SUNDIALS)
 impi_intel_linux : FCOMPL = $(COMP_FC)
 impi_intel_linux : obj = fds_impi_intel_linux

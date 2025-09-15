@@ -7,10 +7,10 @@ project(
 )
 enable_language(Fortran)
 
-option(USE_HYPRE           "Use the hypre library"                    OFF)
+option(USE_HYPRE           "Use the hypre library"                    ON)
 option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 
-option(USE_SUNDIALS        "Use the sundials library"                 OFF)
+option(USE_SUNDIALS        "Use the sundials library"                 ON)
 option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 option(USE_OPENMP          "Use OpenMP"                               ON)
@@ -45,8 +45,8 @@ add_executable(fds
     Source/ctrl.f90
     Source/hvac.f90
     Source/mass.f90
-    Source/json.f90
     Source/imkl.f90
+    Source/json.f90
     Source/wall.f90
     Source/fire.f90
     Source/velo.f90
