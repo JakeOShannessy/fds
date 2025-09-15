@@ -177,6 +177,7 @@ $QFDS -p 5 -d Complex_Geometry geom_stretched_grid.fds
 $QFDS -p 3 -d Complex_Geometry thin_object_mass.fds
 
 $QFDS -d Controls activate_vents.fds
+$QFDS -d Controls bi_dir.fds
 $QFDS -d Controls control_test.fds
 $QFDS -d Controls control_test_2.fds
 $QFDS -d Controls create_remove.fds
@@ -234,7 +235,6 @@ $QFDS -d Fires HoC_NonIdeal.fds
 $QFDS -d Fires simple_test.fds
 $QFDS -d Fires tmp_lower_limit_simple.fds
 $QFDS -d Fires tmp_lower_limit_default.fds
-$QFDS -d Fires tmp_lower_limit_dt_p001.fds
 $QFDS -d Fires tunnel_const_gamma.fds
 $QFDS -d Fires tunnel_linear_cp.fds
 $QFDS -p 8 -d Fires circular_burner.fds
@@ -322,8 +322,17 @@ $QFDS -d Heat_Transfer ht3d_slab.fds
 $QFDS -d Heat_Transfer ht3d_sphere_24.fds
 $QFDS -p 4 -d Heat_Transfer ht3d_sphere_48.fds
 $QFDS -p 64 -d Heat_Transfer ht3d_sphere_96.fds
+$QFDS -d Heat_Transfer back_wall.fds
 $QFDS -p 4 -d Heat_Transfer back_wall_test.fds
 $QFDS -p 3 -d Heat_Transfer back_wall_test_2.fds
+$QFDS -d Heat_Transfer SFPE_Case_1.fds
+$QFDS -d Heat_Transfer SFPE_Case_2.fds
+$QFDS -d Heat_Transfer SFPE_Case_6.fds
+$QFDS -d Heat_Transfer SFPE_Case_7.fds
+$QFDS -d Heat_Transfer SFPE_Case_8.fds
+$QFDS -d Heat_Transfer SFPE_Case_9.fds
+$QFDS -d Heat_Transfer SFPE_Case_13.fds
+$QFDS -p 8 -d Heat_Transfer SFPE_Case_16.fds
 $QFDS -d Heat_Transfer thermocouple_time_constant.fds
 
 $QFDS -d HVAC ashrae7_fixed_flow.fds
@@ -338,6 +347,7 @@ $QFDS -d HVAC HVAC_damper.fds
 $QFDS -d HVAC HVAC_energy_pressure.fds
 $QFDS -d HVAC HVAC_filter.fds
 $QFDS -d HVAC HVAC_flow_loss.fds
+$QFDS -d HVAC HVAC_geom.fds
 $QFDS -d HVAC HVAC_mass_conservation.fds
 $QFDS -d HVAC HVAC_mass_transport.fds
 $QFDS -d HVAC HVAC_mass_transport_1.fds
@@ -362,6 +372,7 @@ $QFDS -d HVAC leak_test_2.fds
 $QFDS -d HVAC leak_enthalpy.fds
 $QFDS -p 2 -d HVAC leak_test_3.fds
 $QFDS -d HVAC leak_test_4.fds
+$QFDS -d HVAC leak_geom.fds
 $QFDS -d HVAC HVAC_leak_exponent.fds
 $QFDS -p 8 -d HVAC HVAC_leak_exponent_2.fds
 
@@ -404,11 +415,13 @@ $QFDS -d Pressure_Effects isentropic.fds
 $QFDS -d Pressure_Effects isentropic2.fds
 $QFDS -d Pressure_Effects pressure_boundary.fds
 $QFDS -d Pressure_Effects pressure_rise.fds
+$QFDS -p 8 -d Pressure_Effects thick_orifice_5cm.fds
 $QFDS -d Pressure_Effects zone_break_fast.fds
 $QFDS -d Pressure_Effects zone_break_slow.fds
 $QFDS -d Pressure_Effects zone_break_fast_ulmat.fds
 $QFDS -d Pressure_Effects zone_break_slow_ulmat.fds
 $QFDS -p 4 -d Pressure_Effects zone_break_fast_uglmat.fds
+$QFDS -p 4 -d Pressure_Effects zone_break_fast_uglmat_hypre.fds
 $QFDS -p 2 -d Pressure_Effects zone_shape.fds
 $QFDS -p 8 -d Pressure_Effects zone_shape_2.fds
 $QFDS -d Pressure_Effects obst_coarse_fine_interface.fds
@@ -759,10 +772,6 @@ $QFDS -d Scalar_Analytical_Solution compression_wave_FL4_16.fds
 $QFDS -d Scalar_Analytical_Solution compression_wave_FL4_32.fds
 $QFDS -d Scalar_Analytical_Solution compression_wave_FL4_64.fds
 $QFDS -d Scalar_Analytical_Solution compression_wave_FL4_128.fds
-$QFDS -d Scalar_Analytical_Solution compression_wave_FL5_16.fds
-$QFDS -d Scalar_Analytical_Solution compression_wave_FL5_32.fds
-$QFDS -d Scalar_Analytical_Solution compression_wave_FL5_64.fds
-$QFDS -d Scalar_Analytical_Solution compression_wave_FL5_128.fds
 $QFDS -d Scalar_Analytical_Solution move_slug.fds
 $QFDS -d Scalar_Analytical_Solution move_slug_fl1.fds
 $QFDS -d Scalar_Analytical_Solution shunn3_32.fds
@@ -794,8 +803,8 @@ $QFDS -p 4 -d Scalar_Analytical_Solution soborot_godunov_square_wave_128.fds
 $QFDS      -d Scalar_Analytical_Solution soborot_superbee_square_wave_16.fds
 $QFDS      -d Scalar_Analytical_Solution soborot_superbee_square_wave_32.fds
 $QFDS      -d Scalar_Analytical_Solution soborot_superbee_square_wave_64.fds
-$QFDS -p 4 -d Scalar_Analytical_Solution soborot_superbee_square_wave_128.fds
-$QFDS      -d Scalar_Analytical_Solution soborot_superbee_square_wave_128_1mesh.fds
+$QFDS -p 4 -T db -d Scalar_Analytical_Solution soborot_superbee_square_wave_128.fds
+$QFDS      -T db -d Scalar_Analytical_Solution soborot_superbee_square_wave_128_1mesh.fds
 $QFDS      -d Scalar_Analytical_Solution soborot_charm_square_wave_16.fds
 $QFDS      -d Scalar_Analytical_Solution soborot_charm_square_wave_32.fds
 $QFDS      -d Scalar_Analytical_Solution soborot_charm_square_wave_64.fds
@@ -808,10 +817,6 @@ $QFDS      -d Scalar_Analytical_Solution soborot_superbee_cos_wave_16.fds
 $QFDS      -d Scalar_Analytical_Solution soborot_superbee_cos_wave_32.fds
 $QFDS      -d Scalar_Analytical_Solution soborot_superbee_cos_wave_64.fds
 $QFDS -p 4 -d Scalar_Analytical_Solution soborot_superbee_cos_wave_128.fds
-$QFDS      -d Scalar_Analytical_Solution soborot_mp5_cos_wave_16.fds
-$QFDS      -d Scalar_Analytical_Solution soborot_mp5_cos_wave_32.fds
-$QFDS      -d Scalar_Analytical_Solution soborot_mp5_cos_wave_64.fds
-$QFDS -p 4 -d Scalar_Analytical_Solution soborot_mp5_cos_wave_128.fds
 
 $QFDS -o 1 -d Thread_Check race_test_1.fds
 $QFDS -o 4 -d Thread_Check race_test_4.fds
@@ -872,6 +877,8 @@ $QFDS -d WUI LS_ellipse_0ms_00deg.fds
 $QFDS -d WUI LS_ellipse_5ms_00deg.fds
 $QFDS -d WUI LS_ellipse_0ms_30deg.fds
 $QFDS -d WUI LS_ellipse_5ms_30deg.fds
+$QFDS -d WUI LS_wind_ramp_lin.fds
+$QFDS -d WUI LS_wind_ramp_quad.fds
 $QFDS -d WUI LS4_ember_ignition.fds
 $QFDS -d WUI LS4_ember_yield.fds
 $QFDS -d WUI Morvan_TGA.fds

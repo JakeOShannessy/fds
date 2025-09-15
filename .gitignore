@@ -110,3 +110,13 @@ cbuild/
 *.msi
 dist/
 dist-debug/
+
+# Anything stored in your repo with UNTRACKED in its directory name
+# will not be wiped out if you do `git clean -dXf` (note capital X!)
+
+# Ignore any directory that has "UNTRACKED" in its name, recursively
+*UNTRACKED*/
+
+# Ignore everything under such directories
+*UNTRACKED*/**
+
