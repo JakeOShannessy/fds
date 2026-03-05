@@ -240,7 +240,7 @@ LOGICAL :: TMP_RESTART=.FALSE.              !< Initialize temperature field with
 LOGICAL :: SPEC_RESTART=.FALSE.             !< Initialize tracked species field with values from a file
 LOGICAL :: PARTICLE_CFL=.FALSE.             !< Include particle velocity as a constraint on time step
 LOGICAL :: RTE_SOURCE_CORRECTION=.TRUE.     !< Apply a correction to the radiation source term to achieve desired rad fraction
-LOGICAL :: OBST_CREATED_OR_REMOVED=.TRUE.   !< An obstruction has just been created or removed and wall cells must be reassigned
+LOGICAL :: OBST_CREATED_OR_REMOVED=.FALSE.  !< An obstruction has just been created or removed and wall cells must be reassigned
 LOGICAL :: CHECK_REALIZABILITY=.FALSE.
 LOGICAL :: MIN_DEVICES_EXIST=.FALSE.
 LOGICAL :: MAX_DEVICES_EXIST=.FALSE.
@@ -278,6 +278,8 @@ LOGICAL :: STORE_FIRE_ARRIVAL=.FALSE.               !< Flag for tracking arrival
 LOGICAL :: STORE_FIRE_RESIDENCE=.FALSE.             !< Flag for tracking residence time of spreading fire front over a surface
 LOGICAL :: STORE_LS_SPREAD_RATE=.FALSE.             !< Flag for outputting local level set spread rate magnitude
 LOGICAL :: TEST_NEW_CHAR_MODEL=.FALSE.              !< Flag to envoke new char model
+LOGICAL :: FLUX_LIMITER_MW_CORRECTION=.TRUE.        !< Flag for MW correction ensure consistent equation of state at face
+LOGICAL :: TEST_NEW_KSGS_MODEL=.FALSE.              !< Flag for new subgrid kinetic energy model from Pope model spectrum
 
 INTEGER, ALLOCATABLE, DIMENSION(:) :: CHANGE_TIME_STEP_INDEX      !< Flag to indicate if a mesh needs to change time step
 INTEGER, ALLOCATABLE, DIMENSION(:) :: SETUP_PRESSURE_ZONES_INDEX  !< Flag to indicate if a mesh needs to keep searching for ZONEs
@@ -396,7 +398,7 @@ REAL(EB) :: T_END                                           !< Ending time of si
 REAL(EB) :: TIME_SHRINK_FACTOR                              !< Factor to reduce specific heat and total run time
 REAL(EB) :: RELAXATION_FACTOR=1._EB                         !< Factor used to relax normal velocity nudging at immersed boundaries
 REAL(EB) :: MPI_TIMEOUT=600._EB                             !< Time to wait for MPI messages to be received (s)
-REAL(EB) :: DT_END_MINIMUM=TWO_EPSILON_EB                   !< Smallest possible final time step (s)
+REAL(EB) :: DT_END_MINIMUM=TWENTY_EPSILON_EB                   !< Smallest possible final time step (s)
 REAL(EB) :: DT_END_FILL=1.E-6_EB
 INTEGER  :: DIAGNOSTICS_INTERVAL                            !< Number of time steps between diagnostic outputs
 REAL(EB) :: UNFREEZE_TIME                                   !< Time to unfreeze a simulation
@@ -521,6 +523,7 @@ REAL(EB), ALLOCATABLE, DIMENSION(:) :: PRESSURE_ERROR_MAX        !< Max pressure
 INTEGER, ALLOCATABLE, DIMENSION(:,:) :: VELOCITY_ERROR_MAX_LOC   !< Indices of max velocity error
 INTEGER, ALLOCATABLE, DIMENSION(:,:) :: PRESSURE_ERROR_MAX_LOC   !< Indices of max pressure error
 INTEGER :: PRESSURE_ITERATIONS=0                                 !< Counter for pressure iterations
+INTEGER :: MAX_PREDICTOR_PRESSURE_ITERATIONS=-1                  !< Max pressure iterations per pressure solve in predictor
 INTEGER :: MAX_PRESSURE_ITERATIONS=10                            !< Max pressure iterations per pressure solve
 INTEGER :: TOTAL_PRESSURE_ITERATIONS=0                           !< Counter for total pressure iterations
 CHARACTER(LABEL_LENGTH) :: PRES_METHOD='FFT'                     !< Pressure solver method
@@ -695,6 +698,7 @@ LOGICAL :: ONE_CC_PER_CARTESIAN_CELL=.TRUE.
 
 ! Threshold factor for volume of cut-cells respect to volume of Cartesian cells:
 ! Currently used in the thermo div definition of cut-cells.
+REAL(EB), PARAMETER :: DEFAULT_VOLFRAC_LINK = 0.5_EB
 
 REAL(EB) :: CCVOL_LINK=0.95_EB
 LOGICAL  :: GET_CUTCELLS_VERBOSE=.FALSE.
@@ -911,6 +915,10 @@ LOGICAL  :: DO_CHEM_LOAD_BALANCE = .FALSE.
 INTEGER  :: MAX_CVODE_SUBSTEPS=100000
 INTEGER  :: CVODE_MAX_TRY=4
 INTEGER  :: CVODE_ORDER=0
+INTEGER  :: CVODE_ERR_CODE_MIN=-100
+INTEGER  :: CVODE_ERR_CODE_MAX=100
+INTEGER  :: CVODE_WARNING_CELLS(-100:100)! Index of the array is error code and value is Cell count
+CHARACTER(LEN=100) :: CVODE_WARN_MESSAGES(-100:100)
 
 ! FOR WRITING CVODE SUBSTEPS
 LOGICAL  :: WRITE_CVODE_SUBSTEPS = .FALSE.
@@ -919,7 +927,7 @@ INTEGER :: TOTAL_SUBSTEPS_TAKEN
 
 ! Adiabatic flame temperature calculation
 CHARACTER(LABEL_LENGTH) :: FUEL_ID_FOR_AFT='null'
-INTEGER :: I_FUEL,I_CO2,I_H2O,I_O2,I_N2 ! Store the index of the species in the ZZ array.
+INTEGER :: I_FUEL,I_CO2,I_H2O,I_O2 ! Store the index of the species in the ZZ array.
 LOGICAL  :: USE_MIXED_ZN_AFT_TMP = .FALSE.
 
 ! Mixing
@@ -930,5 +938,13 @@ REAL(EB) :: ZETA_FIRST_STEP_DIV=10._EB
 ! IGNITION ZONES (mainly for premixed flame)
 INTEGER :: N_IGNITION_ZONES = 0
 TYPE(IGNITION_ZONE_TYPE), DIMENSION(MAX_IGNITION_ZONES) :: IGNITION_ZONES !< Coordinates of ignition zones
+
+CONTAINS
+   SUBROUTINE INIT_CVODE_WARN_MESSAGES()
+      CVODE_WARN_MESSAGES = 'CVODE didn''t finish ODE solution with this code.'
+      CVODE_WARN_MESSAGES(-1) = 'CVODE took all internal substeps.'
+      CVODE_WARN_MESSAGES(-3) = 'Minimum step size was reached.'
+      CVODE_WARN_MESSAGES(-4) = 'Convergence test failure.'
+   END SUBROUTINE INIT_CVODE_WARN_MESSAGES
 
 END MODULE CHEMCONS

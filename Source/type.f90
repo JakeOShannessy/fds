@@ -89,7 +89,7 @@ TYPE LAGRANGIAN_PARTICLE_CLASS_TYPE
    REAL(EB) :: INITIAL_MASS=-1._EB        !< Initial mass of single particle (kg)
    REAL(EB) :: FTPR                       !< 4/3 * PI * SPECIES(N)\%DENSITY_LIQUID (kg/m3)
    REAL(EB) :: FREE_AREA_FRACTION         !< Area fraction of cell open for flow in SCREEN_DRAG model
-   REAL(EB) :: POROUS_VOLUME_FRACTION     !< Volume fraction of cell open to flow in porous media model
+   REAL(EB) :: POROUS_VOLUME_FRACTION     !< Volume fraction of cell occupied by porous media in the porous media model
    REAL(EB) :: MEAN_DROPLET_VOLUME=0._EB  !< Mean droplet volume
    REAL(EB) :: RUNNING_AVERAGE_FACTOR     !< Fraction of older value to use for particle statistics summations
    REAL(EB) :: SHAPE_FACTOR               !< Ratio of particle cross sectional area to surface area
@@ -650,6 +650,7 @@ TYPE SPECIES_MIXTURE_TYPE
    REAL(EB), ALLOCATABLE, DIMENSION(:) :: R50
    REAL(EB) :: OXR                  !< Required oxygen for complete combustion (gm/gm-species)
    REAL(EB) :: OXA                  !< Available oxygen for combustion (gm/gm-species)
+   REAL(EB) :: EQUIV                !< Species equiv ratio OXR/OXA
 
 
 END TYPE SPECIES_MIXTURE_TYPE
@@ -997,6 +998,7 @@ TYPE SURFACE_TYPE
    LOGICAL :: INERT_Q_REF                            !< Treat REFERENCE_HEAT_FLUX as an inert atmosphere test
    LOGICAL :: ALLOW_UNDERSIDE_PARTICLES=.FALSE.      !< Allow droplets to move along downward facing surfaces
    LOGICAL :: ALLOW_SURFACE_PARTICLES=.TRUE.         !< Allow particles to live on a solid surface
+   LOGICAL :: SKIP_INRAD = .FALSE.                   !< Only apply external flux to a surface
    INTEGER :: GEOMETRY,BACKING,PROFILE,HEAT_TRANSFER_MODEL=0,NEAR_WALL_TURB_MODEL=5
    CHARACTER(LABEL_LENGTH) :: PART_ID
    CHARACTER(LABEL_LENGTH) :: ID,TEXTURE_MAP,LEAK_PATH_ID(2)
@@ -1014,7 +1016,8 @@ TYPE SURFACE_TYPE
    REAL(EB) :: VEG_LSET_IGNITE_T,VEG_LSET_ROS_HEAD,VEG_LSET_ROS_00,VEG_LSET_QCON,VEG_LSET_ROS_FLANK,VEG_LSET_ROS_BACK, &
                VEG_LSET_WIND_EXP,VEG_LSET_SIGMA,VEG_LSET_HT,VEG_LSET_BETA,&
                VEG_LSET_M1,VEG_LSET_M10,VEG_LSET_M100,VEG_LSET_MLW,VEG_LSET_MLH,VEG_LSET_SURF_LOAD,VEG_LSET_FIREBASE_TIME, &
-               VEG_LSET_CHAR_FRACTION,VEG_LSET_WIND_HEIGHT
+               VEG_LSET_CHAR_FRACTION,VEG_LSET_WIND_HEIGHT, &
+               B_ROTH,C_ROTH,BETA_ROTH
    INTEGER :: VEG_LSET_FUEL_INDEX,I_RAMP_LS_WIND=-1
 
 END TYPE SURFACE_TYPE
@@ -1045,6 +1048,7 @@ TYPE OMESH_TYPE
    INTEGER, ALLOCATABLE, DIMENSION(:) :: ICC_UNKZ_CT_S, ICC_UNKZ_CC_S, ICC_UNKZ_CT_R, ICC_UNKZ_CC_R,&
                                          ICF_UFFB_CF_S, ICF_UFFB_CF_R
    INTEGER, ALLOCATABLE, DIMENSION(:) :: UNKZ_CT_S, UNKZ_CC_S, UNKZ_CT_R, UNKZ_CC_R
+   INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: MUNKH,GSCH,EWC_TYPE
 
    ! Face variables data (velocities):
    INTEGER, ALLOCATABLE, DIMENSION(:) :: IIO_FC_R,JJO_FC_R,KKO_FC_R,AXS_FC_R,IIO_FC_S,JJO_FC_S,KKO_FC_S,AXS_FC_S
@@ -1497,7 +1501,7 @@ END TYPE CSVF_TYPE
 TYPE(CSVF_TYPE), ALLOCATABLE, DIMENSION(:) :: CSVFINFO
 
 TYPE VENTS_TYPE
-   INTEGER :: I1=-1,I2=-1,J1=-1,J2=-1,K1=-1,K2=-1,BOUNDARY_TYPE=0,IOR=0,SURF_INDEX=0,DEVC_INDEX=-1,CTRL_INDEX=-1, &
+   INTEGER :: I1=-1,I2=-1,J1=-1,J2=-1,K1=-1,K2=-1,BOUNDARY_TYPE=0,IOR=0,IOR_INPUT=0,SURF_INDEX=0,DEVC_INDEX=-1,CTRL_INDEX=-1, &
               COLOR_INDICATOR=99,TYPE_INDICATOR=0,ORDINAL=0,PRESSURE_RAMP_INDEX=0,TMP_EXTERIOR_RAMP_INDEX=0,NODE_INDEX=-1, &
               OBST_INDEX=0,TOTAL_INDEX=-1
    INTEGER, DIMENSION(3) :: RGB=-1
@@ -1561,7 +1565,7 @@ TYPE SLICE_TYPE
    REAL(FB), DIMENSION(2) :: MINMAX
    REAL(FB) :: RLE_MIN, RLE_MAX
    REAL(EB):: AGL_SLICE
-   LOGICAL :: TERRAIN_SLICE=.FALSE.,CELL_CENTERED=.FALSE.,RLE=.FALSE.,DEBUG=.FALSE.,THREE_D=.FALSE.
+   LOGICAL :: TERRAIN_SLICE=.FALSE.,CELL_CENTERED=.FALSE.,RLE=.FALSE.,DEBUG=.FALSE.,THREE_D=.FALSE.,DRY=.FALSE.
    CHARACTER(LABEL_LENGTH) :: SLICETYPE='STRUCTURED',SMOKEVIEW_LABEL
    CHARACTER(LABEL_LENGTH) :: SMOKEVIEW_BAR_LABEL,ID='null',MATL_ID='null'
 END TYPE SLICE_TYPE
@@ -1743,6 +1747,13 @@ TYPE ZONE_MESH_TYPE
 END TYPE ZONE_MESH_TYPE
 
 
+!> \brief Per-row container for variable nonzeros in H matrix (used by GLOBMAT_SOLVER)
+TYPE H_ROW_TYPE
+   INTEGER :: NNZ = 0
+   INTEGER, ALLOCATABLE, DIMENSION(:) :: JD   !< Column indices for this row
+   REAL(EB), ALLOCATABLE, DIMENSION(:) :: D   !< Nonzero values for this row (same length as JD)
+END TYPE H_ROW_TYPE
+
 !> \brief Parameters associated with a ZONE, used in GLOBMAT_SOLVER unstructured pressure solver
 
 TYPE ZONE_SOLVE_TYPE
@@ -1764,14 +1775,12 @@ TYPE ZONE_SOLVE_TYPE
    INTEGER :: CONNECTED_ZONE_PARENT=0                 !< Index of first zone in a connected zone list.
    INTEGER, ALLOCATABLE, DIMENSION(:)   :: NUNKH_LOC  !< Number of local H unknowns per mesh for a given pressure zone.
    INTEGER, ALLOCATABLE, DIMENSION(:)   :: UNKH_IND   !< H unknown numbering start index per mesh for a given pressure zone.
-   INTEGER, ALLOCATABLE, DIMENSION(:)   :: NNZ_D_MAT_H!< Number of non-zeros per row of global matrix.
-   INTEGER, ALLOCATABLE, DIMENSION(:,:) :: JD_MAT_H   !< Column index per row of non-zeros of global matrix.
-   REAL(EB),ALLOCATABLE, DIMENSION(:,:) :: D_MAT_H    !< Nonzero values per row for global matrix.
    INTEGER, ALLOCATABLE, DIMENSION(:,:) :: MESH_IJK   !< I,J,K positions of cell with unknown row IROW (1:3,1:NUNKH).
    REAL(EB),ALLOCATABLE, DIMENSION(:)   :: A_H        !< Matrix coefficients for pressure zone, up triang part, CSR format.
    INTEGER ,ALLOCATABLE, DIMENSION(:)   :: IA_H,JA_H  !< Matrix indexes for pressure zone, up triang part, CSR format.
    REAL(EB),ALLOCATABLE, DIMENSION(:)   :: F_H,X_H    !< RHS and Solution containers for pressure zone.
    REAL(FB),ALLOCATABLE, DIMENSION(:)   :: A_H_FB,F_H_FB,X_H_FB!< Arrays in case of single precision solve.
+   TYPE(H_ROW_TYPE), ALLOCATABLE, DIMENSION(:) :: ROW_H !< Variable-nnz per-row storage for assembly.
 END TYPE ZONE_SOLVE_TYPE
 
 TYPE (ZONE_SOLVE_TYPE), DIMENSION(:), ALLOCATABLE, TARGET :: ZONE_SOLVE
@@ -2122,6 +2131,7 @@ TYPE HVAC_QUANTITY_TYPE
    CHARACTER(LABEL_LENGTH) :: SMOKEVIEW_LABEL !< Smokeview label for QUANTITY
    CHARACTER(LABEL_LENGTH) :: SMOKEVIEW_BAR_LABEL !< Smokeview colorbar label for QUANTITY
    CHARACTER(LABEL_LENGTH) :: UNITS !< Units for QUANTITY
+   LOGICAL :: DRY !< Remove water vapor before computing a mass or volume fraction 
 END TYPE HVAC_QUANTITY_TYPE
 
 
