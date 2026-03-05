@@ -30,7 +30,7 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
     USE OUTPUT_CLOCKS
 
     CHARACTER(FN_LENGTH), INTENT(IN)  :: JSON_OUTPUT_PATH
-    INTEGER :: N, NM, NQ
+    INTEGER :: N, NM, NQ, N_LAYER
     TYPE (MESH_TYPE), POINTER :: M
     TYPE (DEVICE_TYPE), POINTER :: DV
     TYPE (PROPERTY_TYPE), POINTER :: PY
@@ -43,7 +43,7 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
 
     type(json_core) :: json
     type(json_value),pointer :: p, surfaces_obj, vents_obj, meshes_obj, obj, \
-       obj2, obj3, devices_obj, obj4
+       obj2, obj3, devices_obj, obj4, layers_obj,layer, materials_obj,material
 
     ! initialize the class
     call json%initialize()
@@ -139,6 +139,28 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
        IF (LEN_TRIM(SF%FYI) /= 0 .AND. TRIM(SF%FYI) /= 'null') THEN
           call json%add(obj, 'fyi', TRIM(SF%FYI))
        ENDIF
+       call json%add(obj, 'n_layers', SF%N_LAYERS)
+       call json%create_array(layers_obj,'layers')
+       call json%add(obj, layers_obj)
+       DO N_LAYER=1,SF%N_LAYERS
+         call json%create_object(layer,'layer')
+         call json%add(layers_obj, layer)
+         call json%add(layer, 'index', N_LAYER)
+         call json%add(layer, 'density', SF%LAYER_DENSITY(N_LAYER))
+         call json%add(layer, 'n_matls', SF%N_LAYER_MATL(N_LAYER))
+         call json%create_array(materials_obj,'materials')
+         call json%add(layer, materials_obj)
+         DO N_MATL=1,SF%N_LAYER_MATL(N_LAYER)
+            call json%create_object(material,'material')
+            call json%add(materials_obj, material)
+            call json%add(material, 'index', N_MATL)
+            call json%add(material, 'id', SF%MATL_ID(N_LAYER,N_MATL))
+            call json%add(material, 'mass_fraction', SF%MATL_MASS_FRACTION(N_LAYER,N_MATL))
+            nullify(material)
+         ENDDO
+         nullify(layer)
+       ENDDO
+       nullify(layers_obj)
        nullify(obj)
     ENDDO
     nullify(surfaces_obj)
