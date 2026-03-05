@@ -15,6 +15,11 @@ build:
     cmake --build cbuild -j6 --verbose --config Debug
     cmake --install cbuild --prefix dist-debug --config Debug
 
+build-intel:
+    cmake -B cbuild -DCMAKE_BUILD_TYPE=Debug -DCMAKE_Fortran_COMPILER=ifx
+    cmake --build cbuild -j6 --verbose --config Debug
+    cmake --install cbuild --prefix dist-debug --config Debug
+
 # Build the release binaries
 build-release:
     cmake -B cbuild -DCMAKE_BUILD_TYPE=Release
