@@ -7,10 +7,10 @@ project(
 )
 enable_language(Fortran)
 
-option(USE_HYPRE           "Use the hypre library"                    ON)
+option(USE_HYPRE           "Use the hypre library"                    OFF)
 option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 
-option(USE_SUNDIALS        "Use the sundials library"                 ON)
+option(USE_SUNDIALS        "Use the sundials library"                 OFF)
 option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 option(USE_OPENMP          "Use OpenMP"                               ON)
@@ -239,12 +239,15 @@ else()
     FetchContent_Declare(
         jsonfortran
         GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
-        GIT_TAG        2dc8abefd416ec791b100a37d92d5be9f8fa46e8
+        GIT_TAG        a012a4dc5c6f69b736157d70e45ba7820c5bd23f
     )
     set(ENABLE_TESTS OFF CACHE INTERNAL "Turn off json-fortran tests")
     FetchContent_MakeAvailable(jsonfortran)
     add_dependencies(fds jsonfortran-static)
     target_link_libraries(fds PRIVATE jsonfortran-static)
+    # This is a workaround due to where json-fortran places its module files
+    target_include_directories(fds PRIVATE ${jsonfortran_BINARY_DIR})
+    # target_link_directories(fds PRIVATE jsonfortran_BINARY_DIR )
 endif()
 
 install(TARGETS fds)
