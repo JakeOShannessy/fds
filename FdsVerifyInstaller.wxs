@@ -34,7 +34,7 @@
                         <Component Id='FdsVerifyComponent'
                             Guid='cb6c1bd1-4f6d-4ce0-adb4-8bdc935d6f88'>
                             <Environment Id="FDS_VERIFY_PATH" Name="FDS_VERIFY_PATH"
-                                Value="[BINDIR]\fds.exe" Permanent="no" Part="last" Action="set"
+                                Value="[BINDIR]\fds-verify.exe" Permanent="no" Part="last" Action="set"
                                 System="no" />
                             <File Id='FdsVerifyEXE' Name='fds-verify.exe'
                                 Source='dist/bin/fds.exe'
