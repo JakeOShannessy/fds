@@ -7,6 +7,8 @@ project(
 )
 enable_language(Fortran)
 
+option(DUMP_JSON           "Add the option to dump info to JSON"      ON)
+
 option(USE_HYPRE           "Use the hypre library"                    OFF)
 option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 
@@ -226,28 +228,31 @@ if(USE_SUNDIALS)
     endif()
 endif()
 
-if (NOT WIN32)
-    # On non-Windows platforms use the system version of json-fortran
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(json-fortran REQUIRED IMPORTED_TARGET json-fortran)
-    target_link_libraries(fds PRIVATE PkgConfig::json-fortran)
-    target_include_directories(fds PRIVATE /usr/lib64/gfortran/modules)
-else()
-    include(FetchContent)
-    # There are currently issues with the version of json-fortran provided by
-    # vcpkg, therefore we fetch and build json-fortran ourselves.
-    FetchContent_Declare(
-        jsonfortran
-        GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
-        GIT_TAG        a012a4dc5c6f69b736157d70e45ba7820c5bd23f
-    )
-    set(ENABLE_TESTS OFF CACHE INTERNAL "Turn off json-fortran tests")
-    FetchContent_MakeAvailable(jsonfortran)
-    add_dependencies(fds jsonfortran-static)
-    target_link_libraries(fds PRIVATE jsonfortran-static)
-    # This is a workaround due to where json-fortran places its module files
-    target_include_directories(fds PRIVATE ${jsonfortran_BINARY_DIR})
-    # target_link_directories(fds PRIVATE jsonfortran_BINARY_DIR )
+if (DUMP_JSON)
+    target_compile_definitions(fds PRIVATE DUMP_JSON)
+    if (NOT WIN32)
+        # On non-Windows platforms use the system version of json-fortran
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(json-fortran REQUIRED IMPORTED_TARGET json-fortran)
+        target_link_libraries(fds PRIVATE PkgConfig::json-fortran)
+        target_include_directories(fds PRIVATE /usr/lib64/gfortran/modules)
+    else()
+        include(FetchContent)
+        # There are currently issues with the version of json-fortran provided by
+        # vcpkg, therefore we fetch and build json-fortran ourselves.
+        FetchContent_Declare(
+            jsonfortran
+            GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
+            GIT_TAG        a012a4dc5c6f69b736157d70e45ba7820c5bd23f
+        )
+        set(ENABLE_TESTS OFF CACHE INTERNAL "Turn off json-fortran tests")
+        FetchContent_MakeAvailable(jsonfortran)
+        add_dependencies(fds jsonfortran-static)
+        target_link_libraries(fds PRIVATE jsonfortran-static)
+        # This is a workaround due to where json-fortran places its module files
+        target_include_directories(fds PRIVATE ${jsonfortran_BINARY_DIR})
+        # target_link_directories(fds PRIVATE jsonfortran_BINARY_DIR )
+    endif()
 endif()
 
 install(TARGETS fds)
