@@ -77,23 +77,25 @@ LOGICAL, ALLOCATABLE, DIMENSION(:)        :: LOGICAL_BUFFER_EXTERNAL
 REAL(EB), ALLOCATABLE, DIMENSION(:)       :: REAL_BUFFER_DUCT,REAL_BUFFER_EXTERNAL
 REAL(EB), ALLOCATABLE, DIMENSION(:,:)     :: REAL_BUFFER_10,REAL_BUFFER_20
 
-integer :: num_args, ix, json_out_i
-character(len=12), dimension(:), allocatable :: args
+#ifdef DUMP_JSON
+INTEGER :: NUM_ARGS, IX, JSON_OUT_I
+CHARACTER(LEN=12), DIMENSION(:), ALLOCATABLE :: ARGS
 CHARACTER(FN_LENGTH) :: JSON_OUTPUT_PATH=''
 LOGICAL :: OUTPUT_JSON=.FALSE.
 
-num_args = command_argument_count()
-allocate(args(num_args))
+NUM_ARGS = COMMAND_ARGUMENT_COUNT()
+ALLOCATE(ARGS(NUM_ARGS))
 
-json_out_i = -1
-do ix = 1, num_args
-   call get_command_argument(ix,args(ix))
-   if (args(ix) == "--json") then
-      json_out_i = ix+1
+JSON_OUT_I = -1
+DO IX = 1, NUM_ARGS
+   CALL GET_COMMAND_ARGUMENT(IX,ARGS(IX))
+   IF (ARGS(IX) == "--json") THEN
+      JSON_OUT_I = IX+1
       OUTPUT_JSON = .TRUE.
-   endif
-end do
+   ENDIF
+END DO
 JSON_OUTPUT_PATH = args(json_out_i)
+#endif
 
 
 ! Initialize OpenMP
