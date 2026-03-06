@@ -24,426 +24,426 @@ PUBLIC PRINT_JSON
 CONTAINS
 
 SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
-   use,intrinsic :: iso_fortran_env, only: wp => real64
-   use :: json_module, rk => json_rk
-   USE DEVICE_VARIABLES, ONLY: DEVICE_TYPE,DEVICE,N_DEVC,PROPERTY_TYPE,N_PROP,PROPERTY
-   USE OUTPUT_CLOCKS
+USE,INTRINSIC :: ISO_FORTRAN_ENV, ONLY: WP => REAL64
+USE :: JSON_MODULE, RK => JSON_RK
+USE DEVICE_VARIABLES, ONLY: DEVICE_TYPE,DEVICE,N_DEVC,PROPERTY_TYPE,N_PROP,PROPERTY
+USE OUTPUT_CLOCKS
 
-   CHARACTER(FN_LENGTH), INTENT(IN)  :: JSON_OUTPUT_PATH
-   INTEGER :: N, NM, NQ, N_LAYER_MATL, N_LAYER
-   TYPE (MESH_TYPE), POINTER :: M=>NULL()
-   TYPE (DEVICE_TYPE), POINTER :: DV=>NULL()
-   TYPE (PROPERTY_TYPE), POINTER :: PY=>NULL()
-   TYPE (LAGRANGIAN_PARTICLE_CLASS_TYPE), POINTER :: LPC=>NULL()
-   TYPE (OBSTRUCTION_TYPE), POINTER :: OB=>NULL()
-   TYPE (REACTION_TYPE),POINTER :: RN=>NULL()
-   TYPE (SURFACE_TYPE),POINTER:: SF=>NULL()
-   TYPE (MATERIAL_TYPE),POINTER:: MATL=>NULL()
-   TYPE (VENTS_TYPE), POINTER :: VT=>NULL()
+CHARACTER(FN_LENGTH), INTENT(IN)  :: JSON_OUTPUT_PATH
+INTEGER :: N, NM, NQ, N_LAYER_MATL, N_LAYER
+TYPE (MESH_TYPE), POINTER :: M=>NULL()
+TYPE (DEVICE_TYPE), POINTER :: DV=>NULL()
+TYPE (PROPERTY_TYPE), POINTER :: PY=>NULL()
+TYPE (LAGRANGIAN_PARTICLE_CLASS_TYPE), POINTER :: LPC=>NULL()
+TYPE (OBSTRUCTION_TYPE), POINTER :: OB=>NULL()
+TYPE (REACTION_TYPE),POINTER :: RN=>NULL()
+TYPE (SURFACE_TYPE),POINTER:: SF=>NULL()
+TYPE (MATERIAL_TYPE),POINTER:: MATL=>NULL()
+TYPE (VENTS_TYPE), POINTER :: VT=>NULL()
 
 
-   TYPE(JSON_CORE) :: JSON
-   TYPE(JSON_VALUE),POINTER :: TOP_LEVEL  !< The root JSON object
-   TYPE(JSON_VALUE),POINTER ::  SURFACES_OBJ, VENTS_OBJ, MESHES_OBJ, OBJ, \
-      OBJ2, OBJ3, DEVICES_OBJ, OBJ4, LAYERS_OBJ,LAYER, MATERIALS_OBJ,MATL_OBJ
+TYPE(JSON_CORE) :: JSON
+TYPE(JSON_VALUE),POINTER :: ROOT  !< The root JSON object
+TYPE(JSON_VALUE),POINTER :: OBJ1,OBJ2,OBJ3,OBJ4,OBJ5,OBJ6   !< The objects of various depth in the tree
 
-   ! initialize the class
-   call json%initialize()
+! initialize the class
+call json%initialize()
 
-   ! initialize the structure:
-   CALL JSON%CREATE_OBJECT(TOP_LEVEL,'')
+! initialize the structure:
+CALL JSON%CREATE_OBJECT(ROOT,'')
 
-   CALL JSON%ADD(TOP_LEVEL, 'version', '0.1.0')
+CALL JSON%ADD(ROOT, 'version', '0.1.0')
 
-   CALL JSON%ADD(TOP_LEVEL, 'chid', TRIM(CHID))
+CALL JSON%ADD(ROOT, 'chid', TRIM(CHID))
 
-   CALL JSON%ADD(TOP_LEVEL, 'ec_ll', EC_LL)
-   CALL JSON%ADD(TOP_LEVEL, 'visibility_factor', VISIBILITY_FACTOR)
+CALL JSON%ADD(ROOT, 'ec_ll', EC_LL)
+CALL JSON%ADD(ROOT, 'visibility_factor', VISIBILITY_FACTOR)
 
-   CALL JSON%CREATE_OBJECT(OBJ,'dump')
-   CALL JSON%ADD(TOP_LEVEL, OBJ)
-   CALL JSON%ADD(OBJ, 'nframes', NFRAMES)
-   CALL JSON%ADD(OBJ, 'plot3d_quantity', PLOT3D_QUANTITY)
-   CALL JSON%ADD(OBJ, 'dt_bndf', DT_BNDF)
-   CALL JSON%ADD(OBJ, 'dt_cpu', DT_CPU)
-   CALL JSON%ADD(OBJ, 'dt_ctrl', DT_CTRL)
-   CALL JSON%ADD(OBJ, 'dt_devc', DT_DEVC)
-   CALL JSON%ADD(OBJ, 'dt_flush', DT_FLUSH)
-   CALL JSON%ADD(OBJ, 'dt_geom', DT_GEOM)
-   CALL JSON%ADD(OBJ, 'dt_hrr', DT_HRR)
-   CALL JSON%ADD(OBJ, 'dt_hvac', DT_HVAC)
-   CALL JSON%ADD(OBJ, 'dt_isof', DT_ISOF)
-   CALL JSON%ADD(OBJ, 'dt_mass', DT_MASS)
-   CALL JSON%ADD(OBJ, 'dt_part', DT_PART)
-   CALL JSON%ADD(OBJ, 'dt_pl3d', DT_PL3D)
-   CALL JSON%ADD(OBJ, 'dt_prof', DT_PROF)
-   CALL JSON%ADD(OBJ, 'dt_radf', DT_RADF)
-   CALL JSON%ADD(OBJ, 'dt_restart', DT_RESTART)
-   CALL JSON%ADD(OBJ, 'dt_slcf', DT_SLCF)
-   CALL JSON%ADD(OBJ, 'dt_sl3d', DT_SL3D)
-   CALL JSON%ADD(OBJ, 'dt_smoke3d', DT_SMOKE3D)
-   CALL JSON%ADD(OBJ, 'dt_uvw', DT_UVW)
-   CALL JSON%ADD(OBJ, 'dt_tmp', DT_TMP)
-   NULLIFY(OBJ)
+CALL JSON%CREATE_OBJECT(OBJ1,'dump')
+CALL JSON%ADD(ROOT, OBJ1)
+CALL JSON%ADD(OBJ1, 'nframes', NFRAMES)
+CALL JSON%ADD(OBJ1, 'plot3d_quantity', PLOT3D_QUANTITY)
+CALL JSON%ADD(OBJ1, 'dt_bndf', DT_BNDF)
+CALL JSON%ADD(OBJ1, 'dt_cpu', DT_CPU)
+CALL JSON%ADD(OBJ1, 'dt_ctrl', DT_CTRL)
+CALL JSON%ADD(OBJ1, 'dt_devc', DT_DEVC)
+CALL JSON%ADD(OBJ1, 'dt_flush', DT_FLUSH)
+CALL JSON%ADD(OBJ1, 'dt_geom', DT_GEOM)
+CALL JSON%ADD(OBJ1, 'dt_hrr', DT_HRR)
+CALL JSON%ADD(OBJ1, 'dt_hvac', DT_HVAC)
+CALL JSON%ADD(OBJ1, 'dt_isof', DT_ISOF)
+CALL JSON%ADD(OBJ1, 'dt_mass', DT_MASS)
+CALL JSON%ADD(OBJ1, 'dt_part', DT_PART)
+CALL JSON%ADD(OBJ1, 'dt_pl3d', DT_PL3D)
+CALL JSON%ADD(OBJ1, 'dt_prof', DT_PROF)
+CALL JSON%ADD(OBJ1, 'dt_radf', DT_RADF)
+CALL JSON%ADD(OBJ1, 'dt_restart', DT_RESTART)
+CALL JSON%ADD(OBJ1, 'dt_slcf', DT_SLCF)
+CALL JSON%ADD(OBJ1, 'dt_sl3d', DT_SL3D)
+CALL JSON%ADD(OBJ1, 'dt_smoke3d', DT_SMOKE3D)
+CALL JSON%ADD(OBJ1, 'dt_uvw', DT_UVW)
+CALL JSON%ADD(OBJ1, 'dt_tmp', DT_TMP)
+NULLIFY(OBJ1)
 
-   CALL JSON%CREATE_OBJECT(OBJ,'time')
-   CALL JSON%ADD(TOP_LEVEL, OBJ)
-   CALL JSON%ADD(OBJ, 'begin', T_BEGIN)
-   CALL JSON%ADD(OBJ, 'end', T_END)
-   NULLIFY(OBJ)
+CALL JSON%CREATE_OBJECT(OBJ1,'time')
+CALL JSON%ADD(ROOT, OBJ1)
+CALL JSON%ADD(OBJ1, 'begin', T_BEGIN)
+CALL JSON%ADD(OBJ1, 'end', T_END)
+NULLIFY(OBJ1)
 
-   CALL JSON%CREATE_ARRAY(SURFACES_OBJ,'reacs')
-   CALL JSON%ADD(TOP_LEVEL, SURFACES_OBJ)
-   DO N=1,N_REACTIONS
-      RN => REACTION(N)
-      CALL JSON%CREATE_OBJECT(OBJ,'reac')
-      CALL JSON%ADD(SURFACES_OBJ, OBJ)
-      CALL JSON%ADD(OBJ, 'index', N)
-      CALL JSON%ADD(OBJ, 'id', TRIM(RN%ID))
-      CALL JSON%ADD(OBJ, 'equation', TRIM(RN%ID))
-      CALL JSON%ADD(OBJ, 'c', RN%C)
-      CALL JSON%ADD(OBJ, 'h', RN%H)
-      CALL JSON%ADD(OBJ, 'n', RN%N)
-      CALL JSON%ADD(OBJ, 'o', RN%O)
-      CALL JSON%ADD(OBJ, 'epumo2', RN%EPUMO2)
-      CALL JSON%ADD(OBJ, 'heat_of_combustion', RN%HEAT_OF_COMBUSTION)
-      CALL JSON%ADD(OBJ, 'soot_yield', RN%SOOT_YIELD)
-      CALL JSON%ADD(OBJ, 'co_yield', RN%CO_YIELD)
-      NULLIFY(OBJ)
-   ENDDO
-   NULLIFY(SURFACES_OBJ)
+CALL JSON%CREATE_ARRAY(OBJ1,'reacs')
+CALL JSON%ADD(ROOT, OBJ1)
+DO N=1,N_REACTIONS
+   RN => REACTION(N)
+   CALL JSON%CREATE_OBJECT(OBJ2,'reac')
+   CALL JSON%ADD(OBJ1, OBJ2)
+   CALL JSON%ADD(OBJ2, 'index', N)
+   CALL JSON%ADD(OBJ2, 'id', TRIM(RN%ID))
+   CALL JSON%ADD(OBJ2, 'equation', TRIM(RN%ID))
+   CALL JSON%ADD(OBJ2, 'c', RN%C)
+   CALL JSON%ADD(OBJ2, 'h', RN%H)
+   CALL JSON%ADD(OBJ2, 'n', RN%N)
+   CALL JSON%ADD(OBJ2, 'o', RN%O)
+   CALL JSON%ADD(OBJ2, 'epumo2', RN%EPUMO2)
+   CALL JSON%ADD(OBJ2, 'heat_of_combustion', RN%HEAT_OF_COMBUSTION)
+   CALL JSON%ADD(OBJ2, 'soot_yield', RN%SOOT_YIELD)
+   CALL JSON%ADD(OBJ2, 'co_yield', RN%CO_YIELD)
+   NULLIFY(OBJ2)
+ENDDO
+NULLIFY(OBJ1)
 
-   ! add an "surfaces" object to the structure:
-   CALL JSON%CREATE_ARRAY(SURFACES_OBJ,'surfaces')
-   CALL JSON%ADD(TOP_LEVEL, SURFACES_OBJ)
-   ! surfaces start from zero as the special INERT surface is 0
-   DO N=0,N_SURF
+! add an "surfaces" object to the structure:
+CALL JSON%CREATE_ARRAY(OBJ1,'surfaces')
+CALL JSON%ADD(ROOT, OBJ1)
+! surfaces start from zero as the special INERT surface is 0
+DO N=0,N_SURF
    SF => SURFACE(N)
-   CALL JSON%CREATE_OBJECT(OBJ,'surface')
-   CALL JSON%ADD(SURFACES_OBJ, OBJ)
-   CALL JSON%ADD(OBJ, 'index', N)
-   CALL JSON%ADD(OBJ, 'id', TRIM(SF%ID))
+   CALL JSON%CREATE_OBJECT(OBJ2,'surface')
+   CALL JSON%ADD(OBJ1, OBJ2)
+   CALL JSON%ADD(OBJ2, 'index', N)
+   CALL JSON%ADD(OBJ2, 'id', TRIM(SF%ID))
    IF (SF%HRRPUA /= 0.0) THEN
-      CALL JSON%ADD(OBJ, 'hrrpua', SF%HRRPUA)
+      CALL JSON%ADD(OBJ2, 'hrrpua', SF%HRRPUA)
    ENDIF
    IF (SF%VOLUME_FLOW /= 0.0) THEN
-      CALL JSON%ADD(OBJ, 'volume_flow', SF%VOLUME_FLOW)
+      CALL JSON%ADD(OBJ2, 'volume_flow', SF%VOLUME_FLOW)
    ENDIF
    IF (SF%VEL /= 0.0) THEN
-      CALL JSON%ADD(OBJ, 'vel', SF%VEL)
+      CALL JSON%ADD(OBJ2, 'vel', SF%VEL)
    ENDIF
    if (SF%TMP_FRONT /= -1._EB) THEN
-      CALL JSON%ADD(OBJ, 'tmp_front', SF%TMP_FRONT)
+      CALL JSON%ADD(OBJ2, 'tmp_front', SF%TMP_FRONT)
    ENDIF
    IF ( SF%RAMP(TIME_HEAT)%TAU /= TAU_DEFAULT) THEN
-      CALL JSON%ADD(OBJ, 'tau_q', SF%RAMP(TIME_HEAT)%TAU)
+      CALL JSON%ADD(OBJ2, 'tau_q', SF%RAMP(TIME_HEAT)%TAU)
    ENDIF
    IF (LEN_TRIM(SF%FYI) /= 0 .AND. TRIM(SF%FYI) /= 'null') THEN
-      CALL JSON%ADD(OBJ, 'fyi', TRIM(SF%FYI))
+      CALL JSON%ADD(OBJ2, 'fyi', TRIM(SF%FYI))
    ENDIF
-   CALL JSON%ADD(OBJ, 'n_layers', SF%N_LAYERS)
-   CALL JSON%CREATE_ARRAY(LAYERS_OBJ,'layers')
-   CALL JSON%ADD(OBJ, LAYERS_OBJ)
+   CALL JSON%ADD(OBJ2, 'n_layers', SF%N_LAYERS)
+   CALL JSON%CREATE_ARRAY(OBJ3,'layers')
+   CALL JSON%ADD(OBJ2, OBJ3)
    DO N_LAYER=1,SF%N_LAYERS
-   CALL JSON%CREATE_OBJECT(LAYER,'layer')
-   CALL JSON%ADD(LAYERS_OBJ, LAYER)
-   CALL JSON%ADD(LAYER, 'index', N_LAYER)
-   CALL JSON%ADD(LAYER, 'density', SF%LAYER_DENSITY(N_LAYER))
-   CALL JSON%ADD(LAYER, 'n_matls', SF%N_LAYER_MATL(N_LAYER))
-   CALL JSON%CREATE_ARRAY(MATERIALS_OBJ,'materials')
-   CALL JSON%ADD(LAYER, MATERIALS_OBJ)
-   DO N_LAYER_MATL=1,SF%N_LAYER_MATL(N_LAYER)
-      CALL JSON%CREATE_OBJECT(MATL_OBJ,'layer_material')
-      CALL JSON%ADD(MATERIALS_OBJ, MATL_OBJ)
-      CALL JSON%ADD(MATL_OBJ, 'index', N_LAYER_MATL)
-      CALL JSON%ADD(MATL_OBJ, 'id', TRIM(SF%MATL_ID(N_LAYER,N_LAYER_MATL)))
-      CALL JSON%ADD(MATL_OBJ, 'mass_fraction', SF%MATL_MASS_FRACTION(N_LAYER,N_LAYER_MATL))
-      CALL JSON%ADD(MATL_OBJ, 'material_index', SF%LAYER_MATL_INDEX(N_LAYER,N_LAYER_MATL))
-      NULLIFY(MATL_OBJ)
-   ENDDO
-   NULLIFY(LAYER)
-   ENDDO
-   NULLIFY(LAYERS_OBJ)
-   NULLIFY(OBJ)
-   ENDDO
-   NULLIFY(SURFACES_OBJ)
-
-   CALL JSON%CREATE_ARRAY(SURFACES_OBJ,'materials')
-   CALL JSON%ADD(TOP_LEVEL, SURFACES_OBJ)
-   DO N=1,N_MATL
-      MATL => MATERIAL(N)
-      CALL JSON%CREATE_OBJECT(OBJ,'material')
-      CALL JSON%ADD(SURFACES_OBJ, OBJ)
-      CALL JSON%ADD(OBJ, 'index', N)
-      CALL JSON%ADD(OBJ, 'id', TRIM(MATL%ID))
-      CALL JSON%ADD(OBJ, 'rho_s', MATL%RHO_S)
-      CALL JSON%ADD(OBJ, 'emissivity', MATL%EMISSIVITY)
-      CALL JSON%ADD(OBJ, 'thermal_diffusivity', MATL%THERMAL_DIFFUSIVITY)
-      NULLIFY(OBJ)
-   ENDDO
-   NULLIFY(SURFACES_OBJ)
-
-
-   CALL JSON%CREATE_ARRAY(SURFACES_OBJ,'props')
-   CALL JSON%ADD(TOP_LEVEL, SURFACES_OBJ)
-   DO N=1,N_PROP
-      PY => PROPERTY(N)
-      CALL JSON%CREATE_OBJECT(OBJ,'prop')
-      CALL JSON%ADD(SURFACES_OBJ, OBJ)
-      CALL JSON%ADD(OBJ, 'index', N)
-      CALL JSON%ADD(OBJ, 'id', TRIM(PY%ID))
-      if (TRIM(PY%SPEC_ID) /= 'null') then
-         CALL JSON%ADD(OBJ, 'part_id', TRIM(PY%PART_ID))
-      endif
-      if (TRIM(PY%SPEC_ID) /= 'null') then
-         CALL JSON%ADD(OBJ, 'spec_id', TRIM(PY%SPEC_ID))
-      endif
-      CALL JSON%ADD(OBJ, 'quantity', TRIM(PY%QUANTITY))
-      CALL JSON%ADD(OBJ, 'activation_temperature', PY%ACTIVATION_TEMPERATURE)
-      CALL JSON%ADD(OBJ, 'activation_obscuration', PY%ACTIVATION_OBSCURATION)
-      CALL JSON%ADD(OBJ, 'flow_rate', PY%FLOW_RATE)
-      CALL JSON%ADD(OBJ, 'particle_velocity', PY%PARTICLE_VELOCITY)
-      NULLIFY(OBJ)
-   ENDDO
-   NULLIFY(SURFACES_OBJ)
-
-   CALL JSON%CREATE_ARRAY(SURFACES_OBJ,'parts')
-   CALL JSON%ADD(TOP_LEVEL, SURFACES_OBJ)
-   DO N=1,N_LAGRANGIAN_CLASSES
-      LPC => LAGRANGIAN_PARTICLE_CLASS(N)
-      CALL JSON%CREATE_OBJECT(OBJ,'part')
-      CALL JSON%ADD(SURFACES_OBJ, OBJ)
-      CALL JSON%ADD(OBJ, 'index', N)
-      CALL JSON%ADD(OBJ, 'id', TRIM(LPC%ID))
-      CALL JSON%ADD(OBJ, 'spec_id', TRIM(LPC%SPEC_ID))
-      CALL JSON%ADD(OBJ, 'devc_id', TRIM(LPC%DEVC_ID))
-      CALL JSON%ADD(OBJ, 'ctrl_id', TRIM(LPC%CTRL_ID))
-      CALL JSON%ADD(OBJ, 'surf_id', TRIM(LPC%SURF_ID))
-      CALL JSON%ADD(OBJ, 'prop_id', TRIM(LPC%PROP_ID))
-      CALL JSON%ADD(OBJ, 'diameter',  LPC%DIAMETER)
-      CALL JSON%ADD(OBJ, 'monodisperse',  LPC%MONODISPERSE)
-      CALL JSON%ADD(OBJ, 'age',  LPC%LIFETIME)
-      CALL JSON%ADD(OBJ, 'sampling_factor',  LPC%SAMPLING_FACTOR)
-      NULLIFY(OBJ)
-   ENDDO
-   NULLIFY(SURFACES_OBJ)
-
-   CALL JSON%CREATE_ARRAY(MESHES_OBJ,'meshes')
-   CALL JSON%ADD(TOP_LEVEL, MESHES_OBJ)
-
-   DO NM=1,NMESHES
-      M => MESHES(NM)
-      CALL JSON%CREATE_OBJECT(OBJ,'mesh')
-      CALL JSON%ADD(MESHES_OBJ, OBJ)
-      CALL JSON%ADD(OBJ, 'index', NM)
-      CALL JSON%ADD(OBJ, 'id', TRIM(MESH_NAME(NM)))
-
-      CALL JSON%CREATE_OBJECT(OBJ3,'ijk')
-      CALL JSON%ADD(OBJ, OBJ3)
-      CALL JSON%ADD(OBJ3, 'i', M%IBAR)
-      CALL JSON%ADD(OBJ3, 'j', M%JBAR)
-      CALL JSON%ADD(OBJ3, 'k', M%KBAR)
-      NULLIFY(OBJ3)
-
-      CALL JSON%CREATE_OBJECT(OBJ3,'dimensions')
-      CALL JSON%ADD(OBJ, OBJ3)
-      CALL JSON%ADD(OBJ3, 'x1', M%XS)
-      CALL JSON%ADD(OBJ3, 'x2', M%XF)
-      CALL JSON%ADD(OBJ3, 'y1', M%YS)
-      CALL JSON%ADD(OBJ3, 'y2', M%YF)
-      CALL JSON%ADD(OBJ3, 'z1', M%ZS)
-      CALL JSON%ADD(OBJ3, 'z2', M%ZF)
-      NULLIFY(OBJ3)
-
-      CALL JSON%CREATE_OBJECT(OBJ3,'cell_sizes')
-      CALL JSON%ADD(OBJ, OBJ3)
-      CALL JSON%ADD(OBJ3, 'dx', M%DXMIN)
-      CALL JSON%ADD(OBJ3, 'dy', M%DYMIN)
-      CALL JSON%ADD(OBJ3, 'dz', M%DZMIN)
-      NULLIFY(OBJ3)
-
-      if (M%N_VENT > 0) THEN
-         CALL JSON%CREATE_ARRAY(vents_OBJ,'vents')
-         CALL JSON%ADD(OBJ, VENTS_OBJ)
-         PRINT_VENT_LOOP: DO N=1,M%N_VENT
-            VT => MESHES(NM)%VENTS(N)
-            CALL JSON%CREATE_OBJECT(OBJ2,'vent')
-            CALL JSON%ADD(VENTS_OBJ, OBJ2)
-            CALL JSON%ADD(OBJ2, 'index', N)
-            CALL JSON%ADD(OBJ2, 'id', TRIM(VT%ID))
-            CALL JSON%ADD(OBJ2, 'surface', TRIM(SURFACE(VT%SURF_INDEX)%ID))
-            CALL JSON%ADD(OBJ2, 'devc_id', TRIM(VT%DEVC_ID))
-            CALL JSON%ADD(OBJ2, 'ctrl_id', TRIM(VT%CTRL_ID))
-
-            CALL JSON%CREATE_OBJECT(OBJ3,'dimensions')
-            CALL JSON%ADD(OBJ2, OBJ3)
-            CALL JSON%ADD(OBJ3, 'x1', VT%X1)
-            CALL JSON%ADD(OBJ3, 'x2', VT%X2)
-            CALL JSON%ADD(OBJ3, 'y1', VT%Y1)
-            CALL JSON%ADD(OBJ3, 'y2', VT%Y2)
-            CALL JSON%ADD(OBJ3, 'z1', VT%Z1)
-            CALL JSON%ADD(OBJ3, 'z2', VT%Z2)
-            NULLIFY(OBJ3)
-
-            CALL JSON%ADD(OBJ2, 'fds_area', VT%FDS_AREA)
-
-            NULLIFY(OBJ2)
-         ENDDO  PRINT_VENT_LOOP
-         NULLIFY(VENTS_OBJ)
-      ENDIF
-
-      if (M%N_OBST > 0) THEN
-         CALL JSON%CREATE_ARRAY(VENTS_OBJ,'obsts')
-         CALL JSON%ADD(OBJ, VENTS_OBJ)
-         DO N=1,M%N_OBST
-            OB => MESHES(NM)%OBSTRUCTION(N)
-            CALL JSON%CREATE_OBJECT(OBJ2,'obst')
-            CALL JSON%ADD(VENTS_OBJ, OBJ2)
-            CALL JSON%ADD(OBJ2, 'index', N)
-            CALL JSON%ADD(OBJ2, 'id', TRIM(OB%ID))
-
-            CALL JSON%CREATE_OBJECT(OBJ3,'surfaces')
-            CALL JSON%ADD(OBJ2, OBJ3)
-            CALL JSON%ADD(OBJ3, 'x_min', TRIM(SURFACE(OB%SURF_INDEX(-3))%ID))
-            CALL JSON%ADD(OBJ3, 'x_max', TRIM(SURFACE(OB%SURF_INDEX(-2))%ID))
-            CALL JSON%ADD(OBJ3, 'y_min', TRIM(SURFACE(OB%SURF_INDEX(-1))%ID))
-            CALL JSON%ADD(OBJ3, 'y_max', TRIM(SURFACE(OB%SURF_INDEX(1))%ID))
-            CALL JSON%ADD(OBJ3, 'z_min', TRIM(SURFACE(OB%SURF_INDEX(2))%ID))
-            CALL JSON%ADD(OBJ3, 'z_max', TRIM(SURFACE(OB%SURF_INDEX(3))%ID))
-            NULLIFY(OBJ3)
-
-            CALL JSON%CREATE_OBJECT(OBJ3,'input_area')
-            CALL JSON%ADD(OBJ2, OBJ3)
-            CALL JSON%ADD(OBJ3, 'x', OB%INPUT_AREA(1))
-            CALL JSON%ADD(OBJ3, 'y', OB%INPUT_AREA(2))
-            CALL JSON%ADD(OBJ3, 'z', OB%INPUT_AREA(3))
-            NULLIFY(OBJ3)
-
-            CALL JSON%CREATE_OBJECT(OBJ3,'fds_area')
-            CALL JSON%ADD(OBJ2, OBJ3)
-            CALL JSON%ADD(OBJ3, 'x', OB%FDS_AREA(1))
-            CALL JSON%ADD(OBJ3, 'y', OB%FDS_AREA(2))
-            CALL JSON%ADD(OBJ3, 'z', OB%FDS_AREA(3))
-            NULLIFY(OBJ3)
-
-
-            if (TRIM(OB%DEVC_ID) /= 'null') then
-               CALL JSON%ADD(OBJ2, 'devc_id', TRIM(OB%DEVC_ID))
-            endif
-            if (TRIM(OB%CTRL_ID) /= 'null') then
-               CALL JSON%ADD(OBJ2, 'ctrl_id', TRIM(OB%CTRL_ID))
-            endif
-
-            CALL JSON%CREATE_OBJECT(OBJ3,'dimensions')
-            CALL JSON%ADD(OBJ2, OBJ3)
-            CALL JSON%ADD(OBJ3, 'x1', OB%X1)
-            CALL JSON%ADD(OBJ3, 'x2', OB%X2)
-            CALL JSON%ADD(OBJ3, 'y1', OB%Y1)
-            CALL JSON%ADD(OBJ3, 'y2', OB%Y2)
-            CALL JSON%ADD(OBJ3, 'z1', OB%Z1)
-            CALL JSON%ADD(OBJ3, 'z2', OB%Z2)
-            NULLIFY(OBJ3)
-
-            CALL JSON%CREATE_OBJECT(OBJ3,'bounds')
-            CALL JSON%ADD(OBJ2, OBJ3)
-            CALL JSON%ADD(OBJ3, 'i_min', OB%I1)
-            CALL JSON%ADD(OBJ3, 'i_max', OB%I2)
-            CALL JSON%ADD(OBJ3, 'j_min', OB%J1)
-            CALL JSON%ADD(OBJ3, 'j_max', OB%J2)
-            CALL JSON%ADD(OBJ3, 'k_min', OB%K1)
-            CALL JSON%ADD(OBJ3, 'k_max', OB%K2)
-            NULLIFY(OBJ3)
-            NULLIFY(OBJ2)
-         ENDDO
-         NULLIFY(VENTS_OBJ)
-      ENDIF
-
-      NULLIFY(OBJ)
-   ENDDO
-   NULLIFY(MESHES_OBJ)
-
-   CALL JSON%CREATE_ARRAY(DEVICES_OBJ,'devices')
-   CALL JSON%ADD(TOP_LEVEL, DEVICES_OBJ)
-
-   DO N=1,N_DEVC
-      DV => DEVICE(N)
-      CALL JSON%CREATE_OBJECT(OBJ,'device')
-      CALL JSON%ADD(DEVICES_OBJ, OBJ)
-      CALL JSON%ADD(OBJ, 'index', N)
-      CALL JSON%ADD(OBJ, 'id', TRIM(DV%ID))
-      CALL JSON%ADD(OBJ, 'label', TRIM(DV%SMOKEVIEW_LABEL))
-      if (TRIM(DV%SPATIAL_STATISTIC) /= 'null') then
-         CALL JSON%ADD(OBJ, 'spatial_statistic', TRIM(DV%SPATIAL_STATISTIC))
-      endif
-      if (TRIM(DV%SPEC_ID) /= 'null') then
-         CALL JSON%ADD(OBJ, 'spec_id', TRIM(DV%SPEC_ID))
-      endif
-      if (TRIM(DV%PROP_ID) /= 'null') then
-         CALL JSON%ADD(OBJ, 'prop_id', TRIM(DV%PROP_ID))
-      endif
-      CALL JSON%ADD(OBJ, 'mesh',  DV%MESH)
-      CALL JSON%ADD(OBJ, 'setpoint',  DV%SETPOINT)
-
-      CALL JSON%CREATE_OBJECT(OBJ3,'dimensions')
-      CALL JSON%ADD(OBJ, OBJ3)
-      CALL JSON%ADD(OBJ3, 'x1', DV%X1)
-      CALL JSON%ADD(OBJ3, 'x2', DV%X2)
-      CALL JSON%ADD(OBJ3, 'y1', DV%Y1)
-      CALL JSON%ADD(OBJ3, 'y2', DV%Y2)
-      CALL JSON%ADD(OBJ3, 'z1', DV%Z1)
-      CALL JSON%ADD(OBJ3, 'z2', DV%Z2)
-      NULLIFY(OBJ3)
-
-      CALL JSON%CREATE_OBJECT(OBJ3,'location')
-      CALL JSON%ADD(OBJ, OBJ3)
-      CALL JSON%ADD(OBJ3, 'x', DV%X)
-      CALL JSON%ADD(OBJ3, 'y', DV%Y)
-      CALL JSON%ADD(OBJ3, 'z', DV%Z)
-      NULLIFY(OBJ3)
-
-      CALL JSON%CREATE_ARRAY(OBJ2,'quantities')
-      CALL JSON%ADD(OBJ, OBJ2)
-      DO NQ=1,DV%N_QUANTITY
-         call json%create_string(OBJ3,TRIM(DV%QUANTITY(NQ)),'quantity')
-         CALL JSON%ADD(OBJ2, OBJ3)
-         NULLIFY(OBJ3)
+      CALL JSON%CREATE_OBJECT(OBJ4,'layer')
+      CALL JSON%ADD(OBJ3, OBJ4)
+      CALL JSON%ADD(OBJ4, 'index', N_LAYER)
+      CALL JSON%ADD(OBJ4, 'density', SF%LAYER_DENSITY(N_LAYER))
+      CALL JSON%ADD(OBJ4, 'n_matls', SF%N_LAYER_MATL(N_LAYER))
+      CALL JSON%CREATE_ARRAY(OBJ5,'materials')
+      CALL JSON%ADD(OBJ4, OBJ5)
+      DO N_LAYER_MATL=1,SF%N_LAYER_MATL(N_LAYER)
+         CALL JSON%CREATE_OBJECT(OBJ6,'layer_material')
+         CALL JSON%ADD(OBJ5, OBJ6)
+         CALL JSON%ADD(OBJ6, 'index', N_LAYER_MATL)
+         CALL JSON%ADD(OBJ6, 'id', TRIM(SF%MATL_ID(N_LAYER,N_LAYER_MATL)))
+         CALL JSON%ADD(OBJ6, 'mass_fraction', SF%MATL_MASS_FRACTION(N_LAYER,N_LAYER_MATL))
+         CALL JSON%ADD(OBJ6, 'material_index', SF%LAYER_MATL_INDEX(N_LAYER,N_LAYER_MATL))
+         NULLIFY(OBJ6)
       ENDDO
-      NULLIFY(OBJ2)
-
-      CALL JSON%CREATE_ARRAY(OBJ2,'points')
-      CALL JSON%ADD(OBJ, OBJ2)
-      M => MESHES(DV%MESH)
-      DO NQ=1,DV%N_POINTS
-         CALL JSON%CREATE_OBJECT(OBJ3,'point')
-         CALL JSON%ADD(OBJ2, OBJ3)
-         CALL JSON%ADD(OBJ3, 'i', DV%I(NQ))
-         CALL JSON%ADD(OBJ3, 'j', DV%J(NQ))
-         CALL JSON%ADD(OBJ3, 'k', DV%K(NQ))
-         ! Is the cell this point is in solid at the start of the simulation?
-         CALL JSON%ADD(OBJ3, 'init_solid', M%CELL(M%CELL_INDEX(DV%I(NQ),DV%J(NQ),DV%K(NQ)))%SOLID)
-         ! Is the cell above this point solid at the start of the simulation?
-         if (DV%K(NQ) < M%KBAR) THEN
-            CALL JSON%ADD(OBJ3, 'init_solid_zplus', M%CELL(M%CELL_INDEX(DV%I(NQ),DV%J(NQ),DV%K(NQ)+1))%SOLID)
-         ENDIF
-         NULLIFY(OBJ3)
-      ENDDO
-      NULLIFY(OBJ2)
-
-      NULLIFY(OBJ)
+      NULLIFY(OBJ5)
+      NULLIFY(OBJ4)
    ENDDO
-   NULLIFY(DEVICES_OBJ)
+   NULLIFY(OBJ3)
+   NULLIFY(OBJ2)
+ENDDO
+NULLIFY(OBJ1)
 
-   ! write the file:
-   IF (JSON_OUTPUT_PATH == '-') THEN
-      IF (MY_RANK==0) WRITE(LU_ERR,'(A)') ' Outputting JSON info to stdout'
-      CALL JSON%PRINT(TOP_LEVEL)
-   ELSE
-      IF (MY_RANK==0) WRITE(LU_ERR,'(A,A)') ' Outputting JSON info to ', JSON_OUTPUT_PATH
-      CALL JSON%PRINT(TOP_LEVEL,JSON_OUTPUT_PATH)
+CALL JSON%CREATE_ARRAY(OBJ1,'materials')
+CALL JSON%ADD(ROOT, OBJ1)
+DO N=1,N_MATL
+   MATL => MATERIAL(N)
+   CALL JSON%CREATE_OBJECT(OBJ2,'material')
+   CALL JSON%ADD(OBJ1, OBJ2)
+   CALL JSON%ADD(OBJ2, 'index', N)
+   CALL JSON%ADD(OBJ2, 'id', TRIM(MATL%ID))
+   CALL JSON%ADD(OBJ2, 'rho_s', MATL%RHO_S)
+   CALL JSON%ADD(OBJ2, 'emissivity', MATL%EMISSIVITY)
+   CALL JSON%ADD(OBJ2, 'thermal_diffusivity', MATL%THERMAL_DIFFUSIVITY)
+   NULLIFY(OBJ2)
+ENDDO
+NULLIFY(OBJ1)
+
+
+CALL JSON%CREATE_ARRAY(OBJ1,'props')
+CALL JSON%ADD(ROOT, OBJ1)
+DO N=1,N_PROP
+   PY => PROPERTY(N)
+   CALL JSON%CREATE_OBJECT(OBJ2,'prop')
+   CALL JSON%ADD(OBJ1, OBJ2)
+   CALL JSON%ADD(OBJ2, 'index', N)
+   CALL JSON%ADD(OBJ2, 'id', TRIM(PY%ID))
+   if (TRIM(PY%SPEC_ID) /= 'null') then
+      CALL JSON%ADD(OBJ2, 'part_id', TRIM(PY%PART_ID))
+   endif
+   if (TRIM(PY%SPEC_ID) /= 'null') then
+      CALL JSON%ADD(OBJ2, 'spec_id', TRIM(PY%SPEC_ID))
+   endif
+   CALL JSON%ADD(OBJ2, 'quantity', TRIM(PY%QUANTITY))
+   CALL JSON%ADD(OBJ2, 'activation_temperature', PY%ACTIVATION_TEMPERATURE)
+   CALL JSON%ADD(OBJ2, 'activation_obscuration', PY%ACTIVATION_OBSCURATION)
+   CALL JSON%ADD(OBJ2, 'flow_rate', PY%FLOW_RATE)
+   CALL JSON%ADD(OBJ2, 'particle_velocity', PY%PARTICLE_VELOCITY)
+   NULLIFY(OBJ2)
+ENDDO
+NULLIFY(OBJ1)
+
+CALL JSON%CREATE_ARRAY(OBJ1,'parts')
+CALL JSON%ADD(ROOT, OBJ1)
+DO N=1,N_LAGRANGIAN_CLASSES
+   LPC => LAGRANGIAN_PARTICLE_CLASS(N)
+   CALL JSON%CREATE_OBJECT(OBJ2,'part')
+   CALL JSON%ADD(OBJ1, OBJ2)
+   CALL JSON%ADD(OBJ2, 'index', N)
+   CALL JSON%ADD(OBJ2, 'id', TRIM(LPC%ID))
+   CALL JSON%ADD(OBJ2, 'spec_id', TRIM(LPC%SPEC_ID))
+   CALL JSON%ADD(OBJ2, 'devc_id', TRIM(LPC%DEVC_ID))
+   CALL JSON%ADD(OBJ2, 'ctrl_id', TRIM(LPC%CTRL_ID))
+   CALL JSON%ADD(OBJ2, 'surf_id', TRIM(LPC%SURF_ID))
+   CALL JSON%ADD(OBJ2, 'prop_id', TRIM(LPC%PROP_ID))
+   CALL JSON%ADD(OBJ2, 'diameter',  LPC%DIAMETER)
+   CALL JSON%ADD(OBJ2, 'monodisperse',  LPC%MONODISPERSE)
+   CALL JSON%ADD(OBJ2, 'age',  LPC%LIFETIME)
+   CALL JSON%ADD(OBJ2, 'sampling_factor',  LPC%SAMPLING_FACTOR)
+   NULLIFY(OBJ2)
+ENDDO
+NULLIFY(OBJ1)
+
+CALL JSON%CREATE_ARRAY(OBJ1,'meshes')
+CALL JSON%ADD(ROOT, OBJ1)
+
+DO NM=1,NMESHES
+   M => MESHES(NM)
+   CALL JSON%CREATE_OBJECT(OBJ2,'mesh')
+   CALL JSON%ADD(OBJ1, OBJ2)
+   CALL JSON%ADD(OBJ2, 'index', NM)
+   CALL JSON%ADD(OBJ2, 'id', TRIM(MESH_NAME(NM)))
+
+   CALL JSON%CREATE_OBJECT(OBJ3,'ijk')
+   CALL JSON%ADD(OBJ2, OBJ3)
+   CALL JSON%ADD(OBJ3, 'i', M%IBAR)
+   CALL JSON%ADD(OBJ3, 'j', M%JBAR)
+   CALL JSON%ADD(OBJ3, 'k', M%KBAR)
+   NULLIFY(OBJ3)
+
+   CALL JSON%CREATE_OBJECT(OBJ3,'dimensions')
+   CALL JSON%ADD(OBJ2, OBJ3)
+   CALL JSON%ADD(OBJ3, 'x1', M%XS)
+   CALL JSON%ADD(OBJ3, 'x2', M%XF)
+   CALL JSON%ADD(OBJ3, 'y1', M%YS)
+   CALL JSON%ADD(OBJ3, 'y2', M%YF)
+   CALL JSON%ADD(OBJ3, 'z1', M%ZS)
+   CALL JSON%ADD(OBJ3, 'z2', M%ZF)
+   NULLIFY(OBJ3)
+
+   CALL JSON%CREATE_OBJECT(OBJ3,'cell_sizes')
+   CALL JSON%ADD(OBJ2, OBJ3)
+   CALL JSON%ADD(OBJ3, 'dx', M%DXMIN)
+   CALL JSON%ADD(OBJ3, 'dy', M%DYMIN)
+   CALL JSON%ADD(OBJ3, 'dz', M%DZMIN)
+   NULLIFY(OBJ3)
+
+   if (M%N_VENT > 0) THEN
+      CALL JSON%CREATE_ARRAY(OBJ3,'vents')
+      CALL JSON%ADD(OBJ2, OBJ3)
+      PRINT_VENT_LOOP: DO N=1,M%N_VENT
+         VT => MESHES(NM)%VENTS(N)
+         CALL JSON%CREATE_OBJECT(OBJ4,'vent')
+         CALL JSON%ADD(OBJ3, OBJ4)
+         CALL JSON%ADD(OBJ4, 'index', N)
+         CALL JSON%ADD(OBJ4, 'id', TRIM(VT%ID))
+         CALL JSON%ADD(OBJ4, 'surface', TRIM(SURFACE(VT%SURF_INDEX)%ID))
+         CALL JSON%ADD(OBJ4, 'devc_id', TRIM(VT%DEVC_ID))
+         CALL JSON%ADD(OBJ4, 'ctrl_id', TRIM(VT%CTRL_ID))
+
+         CALL JSON%CREATE_OBJECT(OBJ5,'dimensions')
+         CALL JSON%ADD(OBJ4, OBJ5)
+         CALL JSON%ADD(OBJ5, 'x1', VT%X1)
+         CALL JSON%ADD(OBJ5, 'x2', VT%X2)
+         CALL JSON%ADD(OBJ5, 'y1', VT%Y1)
+         CALL JSON%ADD(OBJ5, 'y2', VT%Y2)
+         CALL JSON%ADD(OBJ5, 'z1', VT%Z1)
+         CALL JSON%ADD(OBJ5, 'z2', VT%Z2)
+         NULLIFY(OBJ5)
+
+         CALL JSON%ADD(OBJ4, 'fds_area', VT%FDS_AREA)
+
+         NULLIFY(OBJ4)
+      ENDDO  PRINT_VENT_LOOP
+      NULLIFY(OBJ3)
    ENDIF
 
-   !cleanup:
-   CALL JSON%DESTROY(TOP_LEVEL)
+   if (M%N_OBST > 0) THEN
+      CALL JSON%CREATE_ARRAY(OBJ3,'obsts')
+      CALL JSON%ADD(OBJ2, OBJ3)
+      DO N=1,M%N_OBST
+         OB => MESHES(NM)%OBSTRUCTION(N)
+         CALL JSON%CREATE_OBJECT(OBJ4,'obst')
+         CALL JSON%ADD(OBJ3, OBJ4)
+         CALL JSON%ADD(OBJ4, 'index', N)
+         CALL JSON%ADD(OBJ4, 'id', TRIM(OB%ID))
+
+         CALL JSON%CREATE_OBJECT(OBJ5,'surfaces')
+         CALL JSON%ADD(OBJ4, OBJ5)
+         CALL JSON%ADD(OBJ5, 'x_min', TRIM(SURFACE(OB%SURF_INDEX(-3))%ID))
+         CALL JSON%ADD(OBJ5, 'x_max', TRIM(SURFACE(OB%SURF_INDEX(-2))%ID))
+         CALL JSON%ADD(OBJ5, 'y_min', TRIM(SURFACE(OB%SURF_INDEX(-1))%ID))
+         CALL JSON%ADD(OBJ5, 'y_max', TRIM(SURFACE(OB%SURF_INDEX(1))%ID))
+         CALL JSON%ADD(OBJ5, 'z_min', TRIM(SURFACE(OB%SURF_INDEX(2))%ID))
+         CALL JSON%ADD(OBJ5, 'z_max', TRIM(SURFACE(OB%SURF_INDEX(3))%ID))
+         NULLIFY(OBJ5)
+
+         CALL JSON%CREATE_OBJECT(OBJ5,'input_area')
+         CALL JSON%ADD(OBJ4, OBJ5)
+         CALL JSON%ADD(OBJ5, 'x', OB%INPUT_AREA(1))
+         CALL JSON%ADD(OBJ5, 'y', OB%INPUT_AREA(2))
+         CALL JSON%ADD(OBJ5, 'z', OB%INPUT_AREA(3))
+         NULLIFY(OBJ5)
+
+         CALL JSON%CREATE_OBJECT(OBJ5,'fds_area')
+         CALL JSON%ADD(OBJ4, OBJ5)
+         CALL JSON%ADD(OBJ5, 'x', OB%FDS_AREA(1))
+         CALL JSON%ADD(OBJ5, 'y', OB%FDS_AREA(2))
+         CALL JSON%ADD(OBJ5, 'z', OB%FDS_AREA(3))
+         NULLIFY(OBJ5)
+
+
+         if (TRIM(OB%DEVC_ID) /= 'null') then
+            CALL JSON%ADD(OBJ4, 'devc_id', TRIM(OB%DEVC_ID))
+         endif
+         if (TRIM(OB%CTRL_ID) /= 'null') then
+            CALL JSON%ADD(OBJ4, 'ctrl_id', TRIM(OB%CTRL_ID))
+         endif
+
+         CALL JSON%CREATE_OBJECT(OBJ5,'dimensions')
+         CALL JSON%ADD(OBJ4, OBJ5)
+         CALL JSON%ADD(OBJ5, 'x1', OB%X1)
+         CALL JSON%ADD(OBJ5, 'x2', OB%X2)
+         CALL JSON%ADD(OBJ5, 'y1', OB%Y1)
+         CALL JSON%ADD(OBJ5, 'y2', OB%Y2)
+         CALL JSON%ADD(OBJ5, 'z1', OB%Z1)
+         CALL JSON%ADD(OBJ5, 'z2', OB%Z2)
+         NULLIFY(OBJ5)
+
+         CALL JSON%CREATE_OBJECT(OBJ5,'bounds')
+         CALL JSON%ADD(OBJ4, OBJ5)
+         CALL JSON%ADD(OBJ5, 'i_min', OB%I1)
+         CALL JSON%ADD(OBJ5, 'i_max', OB%I2)
+         CALL JSON%ADD(OBJ5, 'j_min', OB%J1)
+         CALL JSON%ADD(OBJ5, 'j_max', OB%J2)
+         CALL JSON%ADD(OBJ5, 'k_min', OB%K1)
+         CALL JSON%ADD(OBJ5, 'k_max', OB%K2)
+         NULLIFY(OBJ5)
+         NULLIFY(OBJ4)
+      ENDDO
+      NULLIFY(OBJ3)
+   ENDIF
+
+   NULLIFY(OBJ2)
+ENDDO
+NULLIFY(OBJ1)
+
+CALL JSON%CREATE_ARRAY(OBJ1,'devices')
+CALL JSON%ADD(ROOT, OBJ1)
+
+DO N=1,N_DEVC
+   DV => DEVICE(N)
+   CALL JSON%CREATE_OBJECT(OBJ2,'device')
+   CALL JSON%ADD(OBJ1, OBJ2)
+   CALL JSON%ADD(OBJ2, 'index', N)
+   CALL JSON%ADD(OBJ2, 'id', TRIM(DV%ID))
+   CALL JSON%ADD(OBJ2, 'label', TRIM(DV%SMOKEVIEW_LABEL))
+   if (TRIM(DV%SPATIAL_STATISTIC) /= 'null') then
+      CALL JSON%ADD(OBJ2, 'spatial_statistic', TRIM(DV%SPATIAL_STATISTIC))
+   endif
+   if (TRIM(DV%SPEC_ID) /= 'null') then
+      CALL JSON%ADD(OBJ2, 'spec_id', TRIM(DV%SPEC_ID))
+   endif
+   if (TRIM(DV%PROP_ID) /= 'null') then
+      CALL JSON%ADD(OBJ2, 'prop_id', TRIM(DV%PROP_ID))
+   endif
+   CALL JSON%ADD(OBJ2, 'mesh',  DV%MESH)
+   CALL JSON%ADD(OBJ2, 'setpoint',  DV%SETPOINT)
+
+   CALL JSON%CREATE_OBJECT(OBJ3,'dimensions')
+   CALL JSON%ADD(OBJ2, OBJ3)
+   CALL JSON%ADD(OBJ3, 'x1', DV%X1)
+   CALL JSON%ADD(OBJ3, 'x2', DV%X2)
+   CALL JSON%ADD(OBJ3, 'y1', DV%Y1)
+   CALL JSON%ADD(OBJ3, 'y2', DV%Y2)
+   CALL JSON%ADD(OBJ3, 'z1', DV%Z1)
+   CALL JSON%ADD(OBJ3, 'z2', DV%Z2)
+   NULLIFY(OBJ3)
+
+   CALL JSON%CREATE_OBJECT(OBJ3,'location')
+   CALL JSON%ADD(OBJ2, OBJ3)
+   CALL JSON%ADD(OBJ3, 'x', DV%X)
+   CALL JSON%ADD(OBJ3, 'y', DV%Y)
+   CALL JSON%ADD(OBJ3, 'z', DV%Z)
+   NULLIFY(OBJ3)
+
+   CALL JSON%CREATE_ARRAY(OBJ3,'quantities')
+   CALL JSON%ADD(OBJ2, OBJ3)
+   DO NQ=1,DV%N_QUANTITY
+      call json%create_string(OBJ4,TRIM(DV%QUANTITY(NQ)),'quantity')
+      CALL JSON%ADD(OBJ3, OBJ4)
+      NULLIFY(OBJ4)
+   ENDDO
+   NULLIFY(OBJ3)
+
+   CALL JSON%CREATE_ARRAY(OBJ3,'points')
+   CALL JSON%ADD(OBJ2, OBJ3)
+   M => MESHES(DV%MESH)
+   DO NQ=1,DV%N_POINTS
+      CALL JSON%CREATE_OBJECT(OBJ4,'point')
+      CALL JSON%ADD(OBJ3, OBJ4)
+      CALL JSON%ADD(OBJ4, 'i', DV%I(NQ))
+      CALL JSON%ADD(OBJ4, 'j', DV%J(NQ))
+      CALL JSON%ADD(OBJ4, 'k', DV%K(NQ))
+      ! Is the cell this point is in solid at the start of the simulation?
+      CALL JSON%ADD(OBJ4, 'init_solid', M%CELL(M%CELL_INDEX(DV%I(NQ),DV%J(NQ),DV%K(NQ)))%SOLID)
+      ! Is the cell above this point solid at the start of the simulation?
+      if (DV%K(NQ) < M%KBAR) THEN
+         CALL JSON%ADD(OBJ4, 'init_solid_zplus', M%CELL(M%CELL_INDEX(DV%I(NQ),DV%J(NQ),DV%K(NQ)+1))%SOLID)
+      ENDIF
+      NULLIFY(OBJ4)
+   ENDDO
+   NULLIFY(OBJ3)
+
+   NULLIFY(OBJ2)
+ENDDO
+NULLIFY(OBJ1)
+
+! write the file:
+IF (JSON_OUTPUT_PATH == '-') THEN
+   IF (MY_RANK==0) WRITE(LU_ERR,'(A)') ' Outputting JSON info to stdout'
+   CALL JSON%PRINT(ROOT)
+ELSE
+   IF (MY_RANK==0) WRITE(LU_ERR,'(A,A)') ' Outputting JSON info to ', JSON_OUTPUT_PATH
+   CALL JSON%PRINT(ROOT,JSON_OUTPUT_PATH)
+ENDIF
+
+!cleanup:
+CALL JSON%DESTROY(ROOT)
 END SUBROUTINE PRINT_JSON
 
 END MODULE JSON_FORMAT
