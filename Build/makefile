@@ -124,7 +124,7 @@ ifdef HYPRE_HOME # This assumes the HYPRE library is available.
 endif
 
 obj_mpi = prec.o cons.o chem.o prop.o devc.o type.o data.o mesh.o func.o gsmv.o smvv.o rcal.o turb.o soot.o \
-          pois.o geom.o ccib.o radi.o part.o vege.o ctrl.o hvac.o mass.o imkl.o json.o \
+          pois.o geom.o ccib.o radi.o part.o vege.o ctrl.o hvac.o mass.o imkl.o \
           wall.o fire.o velo.o pres.o init.o dump.o read.o divg.o main.o
 
 objwin_mpi = $(obj_mpi:.o=.obj)
@@ -374,7 +374,7 @@ ompi_gnu_osx : FFLAGS = -O3 -std=f2018 -frecursive -ffpe-summary=none -fall-intr
 ompi_gnu_osx : LFLAGSMKL = $(LFLAGSMKL_CUSTOM) $(CLT_VERSION) $(LFLAGS_HYPRE) $(LFLAGS_SUNDIALS)
 ompi_gnu_osx : LFLAGS = -static-libgfortran -static-libquadmath
 ompi_gnu_osx : FCOMPL = $(COMP_FC)
-ompi_gnu_osx : FOPENMPFLAGS = -fopenmp 
+ompi_gnu_osx : FOPENMPFLAGS = -fopenmp
 ompi_gnu_osx : obj = fds_ompi_gnu_osx
 ompi_gnu_osx : setup $(obj_mpi)
 	$(FCOMPL) $(FFLAGS) $(FOPENMPFLAGS) -o $(obj) $(obj_mpi) $(LFLAGSMKL) $(LFLAGS)
