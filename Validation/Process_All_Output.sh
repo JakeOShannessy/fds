@@ -24,23 +24,33 @@ GET_UNIX_TIME()
 PROCESS()
 {
   case=$1
-  casedir=$FIREMODELS/out/$case
-  GET_UNIX_TIME $casedir
-  out_date=$gitdate2
   curdir=`pwd`
   casedir=$case/Current_Results
-  GET_UNIX_TIME $casedir
-  new_date=$gitdate2
-  cd $case
-  nout=`ls -l Current_Results/*.out |& grep -v cannot | wc -l`
-  nfds=`ls -l Current_Results/*.fds |& grep -v cannot | wc -l`
-  ncfds=`ls -l Current_Results/*cat.fds |& grep -v cannot | wc -l`
-  if [ $ncfds -gt 0 ] ; then
-    nfds=$ncfds
+  if [[ -d "$casedir" ]]; then
+    outdir=$FIREMODELS/out/$case
+    GET_UNIX_TIME $outdir
+    out_date=$gitdate2
+    GET_UNIX_TIME $casedir
+    new_date=$gitdate2
+    cd $case
+    nout=`ls -l Current_Results/*.out |& grep -v cannot | wc -l`
+    nfds=`ls -l Current_Results/*.fds |& grep -v cannot | wc -l`
+    ncfds=`ls -l Current_Results/*cat.fds |& grep -v cannot | wc -l`
+    if [ $ncfds -gt 0 ] ; then
+      nfds=$ncfds
+    fi
+    nsuccess=`tail Current_Results/*.out |& grep successfully | wc -l`
+  else
+    nout=0
+    nfds=0
+    ncfds=0
+    nsuccess=0
   fi
-  nsuccess=`tail Current_Results/*.out |& grep successfully | wc -l`
+
   status="***error: $case cases not run"
-  if [ $nfds -gt 0 ] && [ $nfds -gt $nout ]; then
+  if [ $nfds -eq 0 ]; then
+    status=" "
+  elif [ $nfds -gt 0 ] && [ $nfds -gt $nout ]; then
     status="***error: some $case cases did not run or are not complete"
   elif [ $out_date \> $new_date ]; then
     status="***error: existing output is newer than the cases being processed"
@@ -74,6 +84,7 @@ FIREMODELS=../..
 # There should exist a line entry for every directory in the Validation directory of the fds repository.
 # If the case is under development, simply comment out the line below.
 
+PROCESS Aalto_Woods
 PROCESS Arup_Tunnel
 PROCESS ATF_Corridors
 PROCESS Atmospheric_Dispersion
@@ -92,23 +103,29 @@ PROCESS CSIRO_Grassland_Fires
 PROCESS CSTB_Tunnel
 PROCESS Cup_Burner
 PROCESS DelCo_Trainers
+PROCESS DoJ_HAI_Pool_Fires
 PROCESS Droplet_Evaporation
 PROCESS Edinburgh_Vegetation_Drag
 PROCESS FAA_Cargo_Compartments
 PROCESS FAA_Polymers
+PROCESS FHWA_Tunnel
 PROCESS Fleury_Heat_Flux
 PROCESS FM_Burner
 PROCESS FM_FPRF_Datacenter
 PROCESS FM_Parallel_Panels
 PROCESS FM_SNL
 PROCESS FM_Vertical_Wall_Flames
+PROCESS Frankman_Vegetation
 PROCESS Hamins_Gas_Burners
 PROCESS Harrison_Spill_Plumes
 PROCESS Heated_Channel_Flow
 PROCESS Heskestad_Flame_Height
 PROCESS Insulation_Materials
 PROCESS JH_FRA
+PROCESS JIS_Facade
 PROCESS Juelich_SETCOM
+PROCESS Lattimer_Corridor_Ceiling
+PROCESS Lattimer_Tilted_Wall
 PROCESS LEMTA_Spray
 PROCESS LEMTA_UGent_Pool_Fires
 PROCESS LLNL_Enclosure
@@ -130,6 +147,7 @@ PROCESS NIST_NRC
 PROCESS NIST_NRC_Corner_Effects
 PROCESS NIST_NRC_OLIVE-Fire
 PROCESS NIST_NRC_Parallel_Panels
+PROCESS NIST_NRC_Transient_Combustibles
 PROCESS NIST_Polymers
 PROCESS NIST_Pool_Fires
 PROCESS NIST_RSE_1994
@@ -157,7 +175,9 @@ PROCESS SP_AST
 PROCESS SP_Wood_Cribs
 PROCESS Steckler_Compartment
 PROCESS SWJTU_Tunnels
+PROCESS Theobald_Hose_Stream
 PROCESS Turbulent_Jet
+PROCESS TUS_Facade
 PROCESS UL_NFPRF
 PROCESS UL_NIJ_Houses
 PROCESS UL_NIST_Vents
@@ -175,6 +195,7 @@ PROCESS Vettori_Flat_Ceiling
 PROCESS Vettori_Sloped_Ceiling
 PROCESS VTT
 PROCESS VTT_Sprays
+PROCESS Wasson_Impinging_Plumes
 PROCESS Waterloo_Methanol
 PROCESS WTC
 PROCESS Wu_Bakar_Tunnels

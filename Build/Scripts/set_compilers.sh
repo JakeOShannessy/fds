@@ -54,7 +54,11 @@ set_compiler_from_env_var COMP_CXX FIREMODELS_CXX set_COMP_CXX
 set_compiler_from_env_var COMP_FC FIREMODELS_FC set_COMP_FC
 
 # Determine compiler list based on build target
-if [[ "$FDS_BUILD_TARGET" == *"osx"* ]]; then
+if [[ "$FDS_BUILD_TARGET" == "ompi_intel"* ]]; then
+    select_compiler_from_system COMP_CC mpicc icx 
+    select_compiler_from_system COMP_CXX mpicxx icpx 
+    select_compiler_from_system COMP_FC mpifort 
+elif [[ "$FDS_BUILD_TARGET" == *"osx"* ]]; then
     select_compiler_from_system COMP_CC mpicc clang gcc
     select_compiler_from_system COMP_CXX mpicxx clang++ g++
     select_compiler_from_system COMP_FC mpifort
@@ -68,9 +72,9 @@ else  # Default to GNU compilers
     select_compiler_from_system COMP_FC mpifort
 fi
 
-echo "Thirdparty libs C Compiler COMP_CC=$COMP_CC"
-echo "Thirdparty libs C++ compiler COMP_CXX=$COMP_CXX"
-echo "Firemodels and Thirdparty libs Fortran compiler COMP_FC=$COMP_FC"
+echo "Third party libs C Compiler COMP_CC=$COMP_CC"
+echo "Third party libs C++ compiler COMP_CXX=$COMP_CXX"
+echo "Firemodels and third party libs Fortran compiler COMP_FC=$COMP_FC"
 
 export COMP_CC=$COMP_CC
 export COMP_CXX=$COMP_CXX
