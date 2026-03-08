@@ -7,10 +7,13 @@ project(
 )
 enable_language(Fortran)
 
+option(DUMP_JSON           "Add the option to dump info to JSON"      OFF)
+option(USE_SYSTEM_JSON     "Use the json library from the system"     OFF)
+
 option(USE_HYPRE           "Use the hypre library"                    ON)
 option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 
-option(USE_SUNDIALS        "Use the sundials library"                 ON)
+option(USE_SUNDIALS        "Use the sundials library"                 OFF)
 option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 option(USE_OPENMP          "Use OpenMP"                               ON)
@@ -46,6 +49,7 @@ add_executable(fds
     Source/hvac.f90
     Source/mass.f90
     Source/imkl.f90
+    Source/json.f90
     Source/wall.f90
     Source/fire.f90
     Source/velo.f90
@@ -55,6 +59,11 @@ add_executable(fds
     Source/read.f90
     Source/divg.f90
 )
+
+if (DUMP_JSON)
+    target_sources(fds PRIVATE Source/json.f90)
+endif()
+
 target_include_directories(fds PRIVATE .)
 
 # Get various properties about the time and git revision. These can be
@@ -225,9 +234,34 @@ if(USE_SUNDIALS)
     endif()
 endif()
 
+if (DUMP_JSON)
+    target_compile_definitions(fds PRIVATE DUMP_JSON)
+    if (NOT WIN32 AND USE_SYSTEM_JSON)
+        # On non-Windows platforms use the system version of json-fortran
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(json-fortran REQUIRED IMPORTED_TARGET json-fortran)
+        target_link_libraries(fds PRIVATE PkgConfig::json-fortran)
+        target_include_directories(fds PRIVATE /usr/lib64/gfortran/modules)
+    else()
+        include(FetchContent)
+        # There are currently issues with the version of json-fortran provided by
+        # vcpkg, therefore we fetch and build json-fortran ourselves.
+        FetchContent_Declare(
+            jsonfortran
+            GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran.git
+            GIT_TAG        a012a4dc5c6f69b736157d70e45ba7820c5bd23f
+        )
+        set(ENABLE_TESTS OFF CACHE INTERNAL "Turn off json-fortran tests")
+        FetchContent_MakeAvailable(jsonfortran)
+        add_dependencies(fds jsonfortran-static)
+        target_link_libraries(fds PRIVATE jsonfortran-static)
+        # This is a workaround due to where json-fortran places its module files
+        target_include_directories(fds PRIVATE ${jsonfortran_BINARY_DIR})
+    endif()
+endif()
+
 install(TARGETS fds)
 
 include(CTest)
 enable_testing()
-add_test(NAME "FDS Executes"
-    COMMAND fds)
+add_subdirectory(Tests)

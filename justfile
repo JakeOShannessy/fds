@@ -1,4 +1,5 @@
-set windows-powershell := true
+# set windows-powershell := true
+set shell := ["cmd.exe", "/c"]
 alias b := build
 alias br := build-release
 
@@ -11,29 +12,34 @@ test:
 
 # Build the debug binaries
 build:
-    cmake -B cbuild -DLUA=ON -DGLUI=ON -DLUA_BUILD_BINARY=ON -DLUA_UTIL_LIBS=ON -DCMAKE_BUILD_TYPE=Debug -DVCPKG_TARGET_TRIPLET=x64-windows-static -DVCPKG_HOST_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake"
-    cmake --build cbuild --config Debug -j6 -v
-    cmake --install cbuild --config Debug --prefix dist-debug
+    cmake -B cbuild -DCMAKE_BUILD_TYPE=Debug
+    cmake --build cbuild -j6 --verbose --config Debug
+    cmake --install cbuild --prefix dist-debug --config Debug
+
+build-intel:
+    cmake -B cbuild -DCMAKE_BUILD_TYPE=Debug -DCMAKE_Fortran_COMPILER=ifx -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icx -GNinja -DUSE_HYPRE=OFF -DUSE_SUNDIALS=OFF
+    cmake --build cbuild -j6 --verbose --config Debug
+    cmake --install cbuild --prefix dist-debug --config Debug
+
+build-release-intel:
+    cmake -B cbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_Fortran_COMPILER=ifx -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icx -GNinja -DUSE_HYPRE=OFF -DUSE_SUNDIALS=OFF
+    cmake --build cbuild -v -j6 --config Release
+    cmake --install cbuild --prefix dist --config Release
 
 # Build the release binaries
 build-release:
-    cmake -B cbuild -DLUA=ON -DGLUI=ON -DLUA_BUILD_BINARY=ON -DLUA_UTIL_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DVCPKG_TARGET_TRIPLET=x64-windows-static -DVCPKG_HOST_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake"
-    cmake --build cbuild --config Release -v -j6
-    cmake --install cbuild --config Release --prefix dist
+    cmake -B cbuild -DCMAKE_BUILD_TYPE=Release
+    cmake --build cbuild -v -j6 --config Release
+    cmake --install cbuild --prefix dist --config Release
 
 # Build release and create MSI package
-package-windows:
-    candle "FdsVerifyInstaller.wxs"
-    light "FdsVerifyInstaller.wixobj"
+package-windows: build-release-intel
+    wix build .\FdsVerifyInstaller.wxs  -out FdsVerifyInstaller_unsigned.msi
 
 # Build release and create RPM package
 package-rpm:
     ./buildrpm.sh
 
-# Clean the ./dist folder
-clean-dist:
-    rm -r dist
-
 # Clean everything
-clean: clean-dist
-    rm -r cbuild
+clean:
+    cmake -E rm -rf cbuild

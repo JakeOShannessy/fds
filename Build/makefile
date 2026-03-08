@@ -93,14 +93,14 @@ else
   COMMON_MKL_INTEL_LIBS = ${COMMON_MKL_LIBS} ${MKLLIBDIR}/libmkl_blacs_intelmpi_lp64.a
   LFLAGSMKL_INTEL = -Wl,--start-group ${COMMON_MKL_INTEL_LIBS} ${MKLLIBDIR}/libmkl_sequential.a -Wl,--end-group
   LFLAGSMKL_INTEL_OPENMP = -Wl,--start-group ${COMMON_MKL_INTEL_LIBS} ${MKLLIBDIR}/libmkl_intel_thread.a -liomp5 -Wl,--end-group
-  
+
   # ompi_gnu_linux targets
   COMMON_MKL_GNU_LIBS = ${MKLLIBDIR}/libmkl_gf_lp64.a ${MKLLIBDIR}/libmkl_core.a ${MKLLIBDIR}/libmkl_blacs_openmpi_lp64.a -lpthread -lm -ldl
   LFLAGSMKL_GNU_OPENMP = -Wl,--start-group ${COMMON_MKL_GNU_LIBS} ${MKLLIBDIR}/libmkl_gnu_thread.a -lgomp -Wl,--end-group
- 
+
   # ompi_intel_linux target
   LFLAGSMKL_OMPI_INTEL_LINUX = -Wl,--start-group ${COMMON_MKL_LIBS} ${MKLLIBDIR}/libmkl_sequential.a ${MKLLIBDIR}/libmkl_blacs_openmpi_lp64.a  -Wl,--end-group
-  
+
   # ompi_gnu_osx and ompi_intel_osx targets
   COMMON_MKL_CUSTOM_LIBS = ${COMMON_MKL_LIBS} ${MKLLIBDIR}/libmkl_blacs_custom_lp64.a
   LFLAGSMKL_CUSTOM = ${COMMON_MKL_CUSTOM_LIBS} ${MKLLIBDIR}/libmkl_sequential.a
@@ -374,7 +374,7 @@ ompi_gnu_osx : FFLAGS = -O3 -std=f2018 -frecursive -ffpe-summary=none -fall-intr
 ompi_gnu_osx : LFLAGSMKL = $(LFLAGSMKL_CUSTOM) $(CLT_VERSION) $(LFLAGS_HYPRE) $(LFLAGS_SUNDIALS)
 ompi_gnu_osx : LFLAGS = -static-libgfortran -static-libquadmath
 ompi_gnu_osx : FCOMPL = $(COMP_FC)
-ompi_gnu_osx : FOPENMPFLAGS = -fopenmp 
+ompi_gnu_osx : FOPENMPFLAGS = -fopenmp
 ompi_gnu_osx : obj = fds_ompi_gnu_osx
 ompi_gnu_osx : setup $(obj_mpi)
 	$(FCOMPL) $(FFLAGS) $(FOPENMPFLAGS) -o $(obj) $(obj_mpi) $(LFLAGSMKL) $(LFLAGS)
