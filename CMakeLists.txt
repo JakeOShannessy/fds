@@ -7,9 +7,10 @@ project(
 )
 enable_language(Fortran)
 
-option(DUMP_JSON           "Add the option to dump info to JSON"      ON)
+option(DUMP_JSON           "Add the option to dump info to JSON"      OFF)
+option(USE_SYSTEM_JSON     "Use the json library from the system"     OFF)
 
-option(USE_HYPRE           "Use the hypre library"                    OFF)
+option(USE_HYPRE           "Use the hypre library"                    ON)
 option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
 
 option(USE_SUNDIALS        "Use the sundials library"                 OFF)
@@ -58,6 +59,11 @@ add_executable(fds
     Source/read.f90
     Source/divg.f90
 )
+
+if (DUMP_JSON)
+    target_sources(fds PRIVATE Source/json.f90)
+endif()
+
 target_include_directories(fds PRIVATE .)
 
 # Get various properties about the time and git revision. These can be
@@ -230,7 +236,7 @@ endif()
 
 if (DUMP_JSON)
     target_compile_definitions(fds PRIVATE DUMP_JSON)
-    if (NOT WIN32)
+    if (NOT WIN32 AND USE_SYSTEM_JSON)
         # On non-Windows platforms use the system version of json-fortran
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(json-fortran REQUIRED IMPORTED_TARGET json-fortran)
@@ -251,7 +257,6 @@ if (DUMP_JSON)
         target_link_libraries(fds PRIVATE jsonfortran-static)
         # This is a workaround due to where json-fortran places its module files
         target_include_directories(fds PRIVATE ${jsonfortran_BINARY_DIR})
-        # target_link_directories(fds PRIVATE jsonfortran_BINARY_DIR )
     endif()
 endif()
 
@@ -259,5 +264,4 @@ install(TARGETS fds)
 
 include(CTest)
 enable_testing()
-add_test(NAME "FDS Executes"
-    COMMAND fds)
+add_subdirectory(Tests)
