@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?define ProductVersion = "1.15.6"?>
+<?define ProductUpgradeCode = "44a012db-1481-49ef-a67d-6961aa465c2c"?>
+<?define Manufacturer = "Smokeview"?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+    <Package Name='FDS Verify'
+        UpgradeCode="$(var.ProductUpgradeCode)"
+        Language='1033'
+        Version='$(var.ProductVersion)'
+        Manufacturer="$(var.Manufacturer)"
+        Scope='perUser'
+        InstallerVersion='200'
+        Compressed='yes'>
+        <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' />
+        <SummaryInformation Keywords="FDS" Manufacturer="$(var.Manufacturer)" />
+        <Property Id='DiskPrompt' Value="FDS Verify Installer" />
+        <MajorUpgrade AllowSameVersionUpgrades="yes"
+            DowngradeErrorMessage="A newer version of [ProductName] is already installed. If you are sure you want to downgrade, remove the existing installation via Programs and Features." />
+        <Property Id="ALLUSERS" Secure="yes" Value="2" />
+        <Property Id="MSIINSTALLPERUSER" Secure="yes" Value="1" />
+        <StandardDirectory Id='AppDataFolder'>
+            <Directory Id='Fireng' Name='Fireng'>
+                <Directory Id='INSTALLDIR' Name='FDS Verify'>
+                    <Component Id='FdsVerifyScript' Guid='021a625b-fb21-4d2e-bea8-c27af349a400'>
+                        <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]" Permanent="yes"
+                            Part="last" Action="set" System="no" />
+                        <File Id='FdsVerifyScriptCMD' Name='fds-verify.cmd'
+                            Source='fds-verify.cmd'
+                            KeyPath='yes'>
+                        </File>
+                    </Component>
+                    <Directory Id='BINDIR' Name='bin'>
+                        <Component Id='FdsVerifyComponent'
+                            Guid='cb6c1bd1-4f6d-4ce0-adb4-8bdc935d6f88'>
+                            <Environment Id="FDS_VERIFY_PATH" Name="FDS_VERIFY_PATH"
+                                Value="[BINDIR]\fds-verify.exe" Permanent="no" Action="set"
+                                System="no" />
+                            <File Id='FdsVerifyEXE' Name='fds-verify.exe'
+                                Source='dist/bin/fds.exe'
+                                KeyPath='yes'>
+                            </File>
+                        </Component>
+                        <Component Id='CommonRender' Guid='c9eb176c-5dbb-46f4-b0bd-c81e48de8055'>
+                            <!-- <File Id='jsonfortran' Name='jsonfortran.dll'
+                                    Source='Build/impi_intel_win/jsonfortran.dll'></File> -->
+                            <File Id='impi' Name='impi.dll'
+                                Source='C:/Program Files (x86)/Intel/oneAPI/mpi/latest/bin/impi.dll'></File>
+                            <File Id='libifcoremd' Name='libifcoremd.dll'
+                                Source='C:/Program Files (x86)/Intel/oneAPI/2024.2/bin/libifcoremd.dll'></File>
+                            <File Id='libiomp5md' Name='libiomp5md.dll'
+                                Source='C:/Program Files (x86)/Intel/oneAPI/2024.2/bin/libiomp5md.dll'></File>
+                            <File Id='libmmd' Name='libmmd.dll'
+                                Source='C:/Program Files (x86)/Intel/oneAPI/2024.2/bin/libmmd.dll'></File>
+                            <File Id='svml_dispmd' Name='svml_dispmd.dll'
+                                Source='C:/Program Files (x86)/Intel/oneAPI/2024.2/bin/svml_dispmd.dll'></File>
+                            <File Id='libfabric' Name='libfabric.dll'
+                                Source='C:/Program Files (x86)/Intel/oneAPI/mpi/2021.9.0/libfabric/bin/libfabric.dll'></File>
+                        </Component>
+                    </Directory>
+                </Directory>
+            </Directory>
+        </StandardDirectory>
+        <Feature Id='SMVLuaFeature' Level='1'>
+            <ComponentRef Id='FdsVerifyScript' />
+            <ComponentRef Id='FdsVerifyComponent' />
+            <ComponentRef Id='CommonRender' />
+        </Feature>
+    </Package>
+</Wix>
