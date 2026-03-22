@@ -14,7 +14,6 @@ USE MISC_FUNCTIONS, ONLY: SEARCH_CONTROLLER,WRITE_SUMMARY_INFO
 USE HVAC_ROUTINES, ONLY: READ_HVAC,PROC_HVAC
 USE COMPLEX_GEOMETRY, ONLY: READ_GEOM
 USE MPI_F08
-USE THERMO_PROPS
 
 IMPLICIT NONE (TYPE,EXTERNAL)
 PRIVATE
@@ -27,9 +26,8 @@ SUBROUTINE PRINT_JSON(JSON_OUTPUT_PATH)
 USE,INTRINSIC :: ISO_FORTRAN_ENV, ONLY: WP => REAL64
 USE :: JSON_MODULE, RK => JSON_RK
 USE DEVICE_VARIABLES, ONLY: DEVICE_TYPE,DEVICE,N_DEVC,PROPERTY_TYPE,N_PROP,PROPERTY
-USE OUTPUT_CLOCKS
 
-CHARACTER(FN_LENGTH), INTENT(IN)  :: JSON_OUTPUT_PATH
+CHARACTER(250), INTENT(IN)  :: JSON_OUTPUT_PATH
 INTEGER :: N, NM, NQ, N_LAYER_MATL, N_LAYER
 TYPE (MESH_TYPE), POINTER :: M=>NULL()
 TYPE (DEVICE_TYPE), POINTER :: DV=>NULL()
@@ -70,19 +68,14 @@ CALL JSON%ADD(OBJ1, 'dt_devc', DT_DEVC)
 CALL JSON%ADD(OBJ1, 'dt_flush', DT_FLUSH)
 CALL JSON%ADD(OBJ1, 'dt_geom', DT_GEOM)
 CALL JSON%ADD(OBJ1, 'dt_hrr', DT_HRR)
-CALL JSON%ADD(OBJ1, 'dt_hvac', DT_HVAC)
 CALL JSON%ADD(OBJ1, 'dt_isof', DT_ISOF)
 CALL JSON%ADD(OBJ1, 'dt_mass', DT_MASS)
 CALL JSON%ADD(OBJ1, 'dt_part', DT_PART)
 CALL JSON%ADD(OBJ1, 'dt_pl3d', DT_PL3D)
 CALL JSON%ADD(OBJ1, 'dt_prof', DT_PROF)
-CALL JSON%ADD(OBJ1, 'dt_radf', DT_RADF)
 CALL JSON%ADD(OBJ1, 'dt_restart', DT_RESTART)
 CALL JSON%ADD(OBJ1, 'dt_slcf', DT_SLCF)
 CALL JSON%ADD(OBJ1, 'dt_sl3d', DT_SL3D)
-CALL JSON%ADD(OBJ1, 'dt_smoke3d', DT_SMOKE3D)
-CALL JSON%ADD(OBJ1, 'dt_uvw', DT_UVW)
-CALL JSON%ADD(OBJ1, 'dt_tmp', DT_TMP)
 NULLIFY(OBJ1)
 
 CALL JSON%CREATE_OBJECT(OBJ1,'time')
@@ -134,9 +127,6 @@ DO N=0,N_SURF
    if (SF%TMP_FRONT /= -1._EB) THEN
       CALL JSON%ADD(OBJ2, 'tmp_front', SF%TMP_FRONT)
    ENDIF
-   IF ( SF%RAMP(TIME_HEAT)%TAU /= TAU_DEFAULT) THEN
-      CALL JSON%ADD(OBJ2, 'tau_q', SF%RAMP(TIME_HEAT)%TAU)
-   ENDIF
    IF (LEN_TRIM(SF%FYI) /= 0 .AND. TRIM(SF%FYI) /= 'null') THEN
       CALL JSON%ADD(OBJ2, 'fyi', TRIM(SF%FYI))
    ENDIF
@@ -156,9 +146,9 @@ DO N=0,N_SURF
          CALL JSON%CREATE_OBJECT(OBJ6,'layer_material')
          CALL JSON%ADD(OBJ5, OBJ6)
          CALL JSON%ADD(OBJ6, 'index', N_LAYER_MATL)
-         CALL JSON%ADD(OBJ6, 'id', TRIM(SF%MATL_ID(N_LAYER,N_LAYER_MATL)))
-         CALL JSON%ADD(OBJ6, 'mass_fraction', SF%MATL_MASS_FRACTION(N_LAYER,N_LAYER_MATL))
-         CALL JSON%ADD(OBJ6, 'material_index', SF%LAYER_MATL_INDEX(N_LAYER,N_LAYER_MATL))
+         ! CALL JSON%ADD(OBJ6, 'id', TRIM(SF%MATL_ID(N_LAYER,N_LAYER_MATL)))
+         ! CALL JSON%ADD(OBJ6, 'mass_fraction', SF%MATL_MASS_FRACTION(N_LAYER,N_LAYER_MATL))
+         ! CALL JSON%ADD(OBJ6, 'material_index', SF%LAYER_MATL_INDEX(N_LAYER,N_LAYER_MATL))
          NULLIFY(OBJ6)
       ENDDO
       NULLIFY(OBJ5)
@@ -179,7 +169,7 @@ DO N=1,N_MATL
    CALL JSON%ADD(OBJ2, 'id', TRIM(MATL%ID))
    CALL JSON%ADD(OBJ2, 'rho_s', MATL%RHO_S)
    CALL JSON%ADD(OBJ2, 'emissivity', MATL%EMISSIVITY)
-   CALL JSON%ADD(OBJ2, 'thermal_diffusivity', MATL%THERMAL_DIFFUSIVITY)
+   ! CALL JSON%ADD(OBJ2, 'thermal_diffusivity', MATL%THERMAL_DIFFUSIVITY)
    NULLIFY(OBJ2)
 ENDDO
 NULLIFY(OBJ1)
@@ -224,7 +214,7 @@ DO N=1,N_LAGRANGIAN_CLASSES
    CALL JSON%ADD(OBJ2, 'diameter',  LPC%DIAMETER)
    CALL JSON%ADD(OBJ2, 'monodisperse',  LPC%MONODISPERSE)
    CALL JSON%ADD(OBJ2, 'age',  LPC%LIFETIME)
-   CALL JSON%ADD(OBJ2, 'sampling_factor',  LPC%SAMPLING_FACTOR)
+   ! CALL JSON%ADD(OBJ2, 'sampling_factor',  LPC%SAMPLING_FACTOR)
    NULLIFY(OBJ2)
 ENDDO
 NULLIFY(OBJ1)
@@ -301,7 +291,7 @@ DO NM=1,NMESHES
          CALL JSON%CREATE_OBJECT(OBJ4,'obst')
          CALL JSON%ADD(OBJ3, OBJ4)
          CALL JSON%ADD(OBJ4, 'index', N)
-         CALL JSON%ADD(OBJ4, 'id', TRIM(OB%ID))
+         ! CALL JSON%ADD(OBJ4, 'id', TRIM(OB%ID))
 
          CALL JSON%CREATE_OBJECT(OBJ5,'surfaces')
          CALL JSON%ADD(OBJ4, OBJ5)
@@ -373,9 +363,9 @@ DO N=1,N_DEVC
    CALL JSON%ADD(OBJ2, 'index', N)
    CALL JSON%ADD(OBJ2, 'id', TRIM(DV%ID))
    CALL JSON%ADD(OBJ2, 'label', TRIM(DV%SMOKEVIEW_LABEL))
-   if (TRIM(DV%SPATIAL_STATISTIC) /= 'null') then
-      CALL JSON%ADD(OBJ2, 'spatial_statistic', TRIM(DV%SPATIAL_STATISTIC))
-   endif
+   ! if (TRIM(DV%SPATIAL_STATISTIC) /= 'null') then
+   !    CALL JSON%ADD(OBJ2, 'spatial_statistic', TRIM(DV%SPATIAL_STATISTIC))
+   ! endif
    if (TRIM(DV%SPEC_ID) /= 'null') then
       CALL JSON%ADD(OBJ2, 'spec_id', TRIM(DV%SPEC_ID))
    endif
@@ -404,30 +394,30 @@ DO N=1,N_DEVC
 
    CALL JSON%CREATE_ARRAY(OBJ3,'quantities')
    CALL JSON%ADD(OBJ2, OBJ3)
-   DO NQ=1,DV%N_QUANTITY
-      call json%create_string(OBJ4,TRIM(DV%QUANTITY(NQ)),'quantity')
-      CALL JSON%ADD(OBJ3, OBJ4)
-      NULLIFY(OBJ4)
-   ENDDO
+   ! DO NQ=1,DV%N_QUANTITY
+   !    call json%create_string(OBJ4,TRIM(DV%QUANTITY(NQ)),'quantity')
+   !    CALL JSON%ADD(OBJ3, OBJ4)
+   !    NULLIFY(OBJ4)
+   ! ENDDO
    NULLIFY(OBJ3)
 
    CALL JSON%CREATE_ARRAY(OBJ3,'points')
    CALL JSON%ADD(OBJ2, OBJ3)
    M => MESHES(DV%MESH)
-   DO NQ=1,DV%N_POINTS
-      CALL JSON%CREATE_OBJECT(OBJ4,'point')
-      CALL JSON%ADD(OBJ3, OBJ4)
-      CALL JSON%ADD(OBJ4, 'i', DV%I(NQ))
-      CALL JSON%ADD(OBJ4, 'j', DV%J(NQ))
-      CALL JSON%ADD(OBJ4, 'k', DV%K(NQ))
-      ! Is the cell this point is in solid at the start of the simulation?
-      CALL JSON%ADD(OBJ4, 'init_solid', M%CELL(M%CELL_INDEX(DV%I(NQ),DV%J(NQ),DV%K(NQ)))%SOLID)
-      ! Is the cell above this point solid at the start of the simulation?
-      if (DV%K(NQ) < M%KBAR) THEN
-         CALL JSON%ADD(OBJ4, 'init_solid_zplus', M%CELL(M%CELL_INDEX(DV%I(NQ),DV%J(NQ),DV%K(NQ)+1))%SOLID)
-      ENDIF
-      NULLIFY(OBJ4)
-   ENDDO
+   ! DO NQ=1,DV%N_POINTS
+   !    CALL JSON%CREATE_OBJECT(OBJ4,'point')
+   !    CALL JSON%ADD(OBJ3, OBJ4)
+   !    CALL JSON%ADD(OBJ4, 'i', DV%I(NQ))
+   !    CALL JSON%ADD(OBJ4, 'j', DV%J(NQ))
+   !    CALL JSON%ADD(OBJ4, 'k', DV%K(NQ))
+   !    ! Is the cell this point is in solid at the start of the simulation?
+   !    ! CALL JSON%ADD(OBJ4, 'init_solid', M%CELL(M%CELL_INDEX(DV%I(NQ),DV%J(NQ),DV%K(NQ)))%SOLID)
+   !    ! Is the cell above this point solid at the start of the simulation?
+   !    ! if (DV%K(NQ) < M%KBAR) THEN
+   !    !    CALL JSON%ADD(OBJ4, 'init_solid_zplus', M%CELL(M%CELL_INDEX(DV%I(NQ),DV%J(NQ),DV%K(NQ)+1))%SOLID)
+   !    ! ENDIF
+   !    NULLIFY(OBJ4)
+   ! ENDDO
    NULLIFY(OBJ3)
 
    NULLIFY(OBJ2)
@@ -436,10 +426,10 @@ NULLIFY(OBJ1)
 
 ! write the file:
 IF (JSON_OUTPUT_PATH == '-') THEN
-   IF (MY_RANK==0) WRITE(LU_ERR,'(A)') ' Outputting JSON info to stdout'
+   WRITE(LU_ERR,'(A)') ' Outputting JSON info to stdout'
    CALL JSON%PRINT(ROOT)
 ELSE
-   IF (MY_RANK==0) WRITE(LU_ERR,'(A,A)') ' Outputting JSON info to ', JSON_OUTPUT_PATH
+   WRITE(LU_ERR,'(A,A)') ' Outputting JSON info to ', JSON_OUTPUT_PATH
    CALL JSON%PRINT(ROOT,JSON_OUTPUT_PATH)
 ENDIF
 
