@@ -27,8 +27,6 @@ add_executable(fds
     Source/main.f90
     Source/prec.f90
     Source/cons.f90
-    Source/chem.f90
-    Source/prop.f90
     Source/devc.f90
     Source/type.f90
     Source/data.f90
@@ -36,26 +34,28 @@ add_executable(fds
     Source/func.f90
     Source/gsmv.f90
     Source/smvv.f90
-    Source/rcal.f90
     Source/turb.f90
     Source/soot.f90
     Source/pois.f90
     Source/geom.f90
-    Source/ccib.f90
     Source/radi.f90
     Source/part.f90
     Source/vege.f90
     Source/ctrl.f90
     Source/hvac.f90
     Source/mass.f90
-    Source/imkl.f90
     Source/wall.f90
     Source/fire.f90
     Source/velo.f90
     Source/pres.f90
     Source/init.f90
+    Source/irad.f90
     Source/dump.f90
+    Source/evac.f90
+    Source/ieva.f90
     Source/read.f90
+    Source/samr.f90
+    Source/scrc.f90
     Source/divg.f90
 )
 
