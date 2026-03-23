@@ -27,7 +27,6 @@ add_executable(fds
     Source/main.f90
     Source/prec.f90
     Source/cons.f90
-    Source/chem.f90
     Source/prop.f90
     Source/devc.f90
     Source/type.f90
