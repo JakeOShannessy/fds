@@ -1,12 +1,12 @@
 MODULE FIRE
- 
-! Compute combustion 
- 
+
+! Compute combustion
+
 USE PRECISION_PARAMETERS
 USE GLOBAL_CONSTANTS
 USE MESH_POINTERS
 USE COMP_FUNCTIONS, ONLY: SECOND
- 
+
 IMPLICIT NONE
 PRIVATE
 CHARACTER(255), PARAMETER :: fireid='$Id$'
@@ -17,9 +17,9 @@ TYPE(REACTION_TYPE), POINTER :: RN=>NULL()
 REAL(EB) :: Q_UPPER
 
 PUBLIC COMBUSTION, GET_REV_fire
- 
+
 CONTAINS
- 
+
 
 SUBROUTINE COMBUSTION(NM)
 
@@ -39,7 +39,7 @@ Q_UPPER = HRRPUA_SHEET/CELL_SIZE**HRRPUA_SHEET_EXPONENT + HRRPUV_AVERAGE
 ! Choose between mixture fraction formulation or finite-rate chemistry
 
 IF (MIXTURE_FRACTION) THEN
-   CALL COMBUSTION_MF   
+   CALL COMBUSTION_MF
 ELSE
    IF (COMBUSTION2) THEN
       CALL COMBUSTION_FR2
@@ -59,7 +59,7 @@ CONTAINS
 SUBROUTINE COMBUSTION_MF
 
 USE PHYSICAL_FUNCTIONS, ONLY : GET_MASS_FRACTION,GET_SPECIFIC_GAS_CONSTANT,GET_AVERAGE_SPECIFIC_HEAT,GET_CONDUCTIVITY
-REAL(EB) :: Y_FU_0,A,ETRM,Y_O2_0,Y_CO_0,DYF,DX_FDT,HFAC_F,DTT,DELTA,DELTA2,ACCEL, & 
+REAL(EB) :: Y_FU_0,A,ETRM,Y_O2_0,Y_CO_0,DYF,DX_FDT,HFAC_F,DTT,DELTA,DELTA2,ACCEL, &
             Y_O2_MAX,TMP_MIN,Y_O2_CORR,Q_NEW,Q_OLD,F_TO_CO,DELTAH_CO,DYCO,HFAC_CO,RHOX, &
             X_FU,X_O2,X_FU_0,X_O2_0,X_FU_S,X_O2_S,X_FU_N,X_O2_N,CO_TO_O2,CRIT_FLAME_TMPA, &
             Y_FU_MAX,TMP_F_MIN,Y_F_CORR,Z_2_MIN,Z_2_MIN_FAC,WGT,OMWGT,Q_BOUND_1,Q_BOUND_2,Q_BOUND_3,YY_GET(1:N_SPECIES), &
@@ -90,7 +90,7 @@ Q        =  0._EB
          DO I=0,IBP1
             IF (SOLID(CELL_INDEX(I,J,K))) CYCLE
             YY_GET(:) = YY(I,J,K,:)
-            CALL GET_MASS_FRACTION(YY_GET,O2_INDEX,Y_O2(I,J,K))   
+            CALL GET_MASS_FRACTION(YY_GET,O2_INDEX,Y_O2(I,J,K))
          ENDDO
       ENDDO
    ENDDO
@@ -137,7 +137,7 @@ DO K=1,KBAR
          IF (Y_FU_0<=Y_FU_MIN) CYCLE
          Y_O2_0  = Y_O2(I,J,K)
          IF (Y_O2_0<=Y_O2_MIN) CYCLE
-         
+
          IF_SUPPRESSION: IF (SUPPRESSION) THEN  ! Get maximum O2 in the current and neighboring cells to see if flame viable
 
             Y_O2_MAX  = 0._EB
@@ -169,7 +169,7 @@ DO K=1,KBAR
                      CASE( 3)
                         KK = K+1
                   END SELECT
-   
+
                   IW = WALL_INDEX(IC,IOR)
                   IF (IW==0 .OR. BOUNDARY_TYPE(IW)==OPEN_BOUNDARY .OR. BOUNDARY_TYPE(IW)==INTERPOLATED_BOUNDARY) THEN
                      IF (Y_O2(II,JJ,KK)>Y_O2_MAX) THEN
@@ -188,7 +188,7 @@ DO K=1,KBAR
 
             ! Evaluate empirical extinction criteria
             IF (EXTINCTION2) THEN
-               DYF = MIN(Y_FU_0,Y_O2_0/RN%O2_F_RATIO) 
+               DYF = MIN(Y_FU_0,Y_O2_0/RN%O2_F_RATIO)
                YY_GET = 0._EB
                YY_GET(I_FUEL) = 1._EB
                CALL GET_AVERAGE_SPECIFIC_HEAT(YY_GET,H_F_0,TMP(I,J,K))
@@ -196,7 +196,7 @@ DO K=1,KBAR
                YY_GET = YY(I,J,K,:)
                YY_GET(I_FUEL) = 0._EB
                YY_GET = YY_GET / (1._EB - Y_FU_0)
-               CALL GET_AVERAGE_SPECIFIC_HEAT(YY_GET,H_G_0,TMP(I,J,K))            
+               CALL GET_AVERAGE_SPECIFIC_HEAT(YY_GET,H_G_0,TMP(I,J,K))
                CALL GET_AVERAGE_SPECIFIC_HEAT(YY_GET,H_G_N,RN%CRIT_FLAME_TMP)
                DYAIR = DYF * (1._EB - Y_FU_0) / Y_O2_0 * RN%O2_F_RATIO
                IF ( (DYF*H_F_0 + DYAIR*H_G_0)*TMP(I,J,K) + DYF*DELTAH_F < (DYF*H_F_N + DYAIR*H_G_N)*RN%CRIT_FLAME_TMP) CYCLE
@@ -207,9 +207,9 @@ DO K=1,KBAR
             ENDIF
 
          ENDIF IF_SUPPRESSION
-         
+
          LES_IF: IF (LES) THEN
-            
+
             IF (USE_MAX_FILTER_WIDTH) THEN
                DELTA=MAX(DX(I),DY(J),DZ(K))
             ELSE
@@ -219,17 +219,17 @@ DO K=1,KBAR
                   DELTA = SQRT(DX(I)*DZ(K))
                ENDIF
             ENDIF
- 
+
             EXPERIMENTAL_IF: IF (NEW_MIX_TIME) THEN
                ! experimental
                TAU_D = SC*RHO(I,J,K)*DELTA**2/MU(I,J,K)   ! diffusive time scale
-               
+
                ! compute local filtered strain
                DUDX = RDX(I)*(UU(I,J,K)-UU(I-1,J,K))
                DVDY = RDY(J)*(VV(I,J,K)-VV(I,J-1,K))
                DWDZ = RDZ(K)*(WW(I,J,K)-WW(I,J,K-1))
                DUDY = 0.25_EB*RDY(J)*(UU(I,J+1,K)-UU(I,J-1,K)+UU(I-1,J+1,K)-UU(I-1,J-1,K))
-               DUDZ = 0.25_EB*RDZ(K)*(UU(I,J,K+1)-UU(I,J,K-1)+UU(I-1,J,K+1)-UU(I-1,J,K-1)) 
+               DUDZ = 0.25_EB*RDZ(K)*(UU(I,J,K+1)-UU(I,J,K-1)+UU(I-1,J,K+1)-UU(I-1,J,K-1))
                DVDX = 0.25_EB*RDX(I)*(VV(I+1,J,K)-VV(I-1,J,K)+VV(I+1,J-1,K)-VV(I-1,J-1,K))
                DVDZ = 0.25_EB*RDZ(K)*(VV(I,J,K+1)-VV(I,J,K-1)+VV(I,J-1,K+1)-VV(I,J-1,K-1))
                DWDX = 0.25_EB*RDX(I)*(WW(I+1,J,K)-WW(I-1,J,K)+WW(I+1,J,K-1)-WW(I-1,J,K-1))
@@ -238,7 +238,7 @@ DO K=1,KBAR
                S13 = 0.5_EB*(DUDZ+DWDX)
                S23 = 0.5_EB*(DVDZ+DWDY)
                SS2 = 2._EB*(DUDX**2 + DVDY**2 + DWDZ**2 + 2._EB*(S12**2 + S13**2 + S23**2))
-               
+
                EPSK = MU(I,J,K)/RHO(I,J,K)*SS2       ! ke dissipation rate, assumes production=dissipation
                KSGS = 2.25_EB*(EPSK*DELTA/PI)**TWTH  ! estimate of subgrid ke, from Kolmogorov spectrum
 
@@ -249,22 +249,22 @@ DO K=1,KBAR
                ! FDS 5 default
                MIX_TIME(I,J,K)=C_EDC*SC*RHO(I,J,K)*DELTA**2/MU(I,J,K)
             ENDIF EXPERIMENTAL_IF
-            
+
          ENDIF LES_IF
-         
+
          ! chemical time scale
          CHEM_IF: IF (CHECK_CHEMICAL_TIME_SCALE) THEN
             TAU_CHEM = 0._EB ! infinitely fast chemistry
             YY_GET(:) = YY(I,J,K,:)
             CALL GET_CONDUCTIVITY(YY_GET,KP,TMP(I,J,K))
-            CALL GET_AVERAGE_SPECIFIC_HEAT(YY_GET,CP,TMP(I,J,K))  
+            CALL GET_AVERAGE_SPECIFIC_HEAT(YY_GET,CP,TMP(I,J,K))
             S_L = LAMINAR_FLAME_SPEED(TMPA,RN%O2_F_RATIO/(Y_O2_0/Y_FU_0))
             IF (S_L>0._EB) TAU_CHEM = KP/(RHO(I,J,K)*CP*S_L*S_L)
-            MIX_TIME(I,J,K)=MAX(TAU_CHEM,MIX_TIME(I,J,K))           
+            MIX_TIME(I,J,K)=MAX(TAU_CHEM,MIX_TIME(I,J,K))
          ENDIF CHEM_IF
-         
+
          IF (FIXED_MIX_TIME>0._EB) MIX_TIME(I,J,K)=FIXED_MIX_TIME
-         
+
          NEW_DYF_IF: IF (NEW_MIX_TIME) THEN
             IF (Y_FU_0 < Y_O2_0/RN%O2_F_RATIO) THEN
                DYF = Y_FU_0 * (1._EB -EXP(-DT/MIX_TIME(I,J,K)))
@@ -277,11 +277,11 @@ DO K=1,KBAR
             DYF = MIN(Y_FU_0,Y_O2_0/RN%O2_F_RATIO)
             Q_BOUND_1 = DYF*RHO(I,J,K)*HFAC_F*MIN(1._EB,DT/MIX_TIME(I,J,K))
          ENDIF NEW_DYF_IF
-         
+
          Q_BOUND_2 = Q_UPPER
          Q_NEW = MIN(Q_BOUND_1,Q_BOUND_2)
          DYF = Q_NEW /(RHO(I,J,K)*HFAC_F*RN%Y_F_INLET)
-         
+
          Q(I,J,K)  = Q_NEW
          YY(I,J,K,I_FUEL) = YY(I,J,K,I_FUEL) - DYF
          IF (CO_PRODUCTION) THEN
@@ -289,7 +289,7 @@ DO K=1,KBAR
                YY(I,J,K,I_PROG_CO)   = YY(I,J,K,I_PROG_CO)   + DYF * (1._EB - RN%SOOT_YIELD)
                YY(I,J,K,I_PROG_SOOT) = YY(I,J,K,I_PROG_SOOT) + DYF * RN%SOOT_YIELD
             ELSE
-               YY(I,J,K,I_PROG_CO) = YY(I,J,K,I_PROG_CO) + DYF            
+               YY(I,J,K,I_PROG_CO) = YY(I,J,K,I_PROG_CO) + DYF
             ENDIF
             Y_O2_NEW(I,J,K) = Y_O2_NEW(I,J,K) - DYF * RN%O2_F_RATIO
          ELSE
@@ -297,7 +297,7 @@ DO K=1,KBAR
                YY(I,J,K,I_PROG_F)    = YY(I,J,K,I_PROG_F)    + DYF * (1._EB - RN%SOOT_YIELD)
                YY(I,J,K,I_PROG_SOOT) = YY(I,J,K,I_PROG_SOOT) + DYF * RN%SOOT_YIELD
             ELSE
-               YY(I,J,K,I_PROG_F)  = YY(I,J,K,I_PROG_F)  + DYF            
+               YY(I,J,K,I_PROG_F)  = YY(I,J,K,I_PROG_F)  + DYF
             ENDIF
          ENDIF
       ENDDO
@@ -306,16 +306,16 @@ ENDDO
 !$OMP END DO
 
 ! Optional second (slow) reaction to convert CO to CO_2
-CONVERT_CO: IF (CO_PRODUCTION) THEN 
+CONVERT_CO: IF (CO_PRODUCTION) THEN
    !$OMP SINGLE
    RN => REACTION(2)
    DELTAH_CO = (REACTION(2)%HEAT_OF_COMBUSTION - REACTION(1)%HEAT_OF_COMBUSTION) * &
                 REACTION(1)%MW_FUEL/((REACTION(1)%NU(CO_INDEX)-REACTION(2)%NU(CO_INDEX))*MW_CO)
-   F_TO_CO   = REACTION(1)%MW_FUEL/(REACTION(1)%NU(CO_INDEX)*MW_CO)  
+   F_TO_CO   = REACTION(1)%MW_FUEL/(REACTION(1)%NU(CO_INDEX)*MW_CO)
    HFAC_CO   = DELTAH_CO/DT
    CO_TO_O2  = MW_O2/(MW_CO*2._EB)
    Z_2_MIN_FAC = F_TO_CO * REACTION(2)%CO_YIELD / REACTION(1)%Y_F_INLET
-   A  = RN%BOF 
+   A  = RN%BOF
    NODETS = 20
    DTT    = DT/REAL(NODETS,EB)
    !$OMP END SINGLE
@@ -328,7 +328,7 @@ CONVERT_CO: IF (CO_PRODUCTION) THEN
             IF (SOLID(CELL_INDEX(I,J,K))) CYCLE
 
             Y_O2_0  = Y_O2_NEW(I,J,K)
-            Y_CO_0  = MAX(0._EB,YY(I,J,K,I_PROG_CO))*RN%Y_F_INLET / F_TO_CO 
+            Y_CO_0  = MAX(0._EB,YY(I,J,K,I_PROG_CO))*RN%Y_F_INLET / F_TO_CO
             IF (Y_CO_0<=Y_CO_MIN .OR. Y_O2_0<=Y_O2_MIN) CYCLE
 
             ! Get max conversion allowed
@@ -347,7 +347,7 @@ CONVERT_CO: IF (CO_PRODUCTION) THEN
                X_O2_0 = Y_O2_0*RHOX/MW_O2*1.E-6_EB
                X_FU   = X_FU_0
                X_O2   = X_O2_0
-               ETRM = EXP(-RN%E/(R0*TMP(I,J,K)))   
+               ETRM = EXP(-RN%E/(R0*TMP(I,J,K)))
                ODE_LOOP2: DO II=1,NODETS
                   IF (X_FU<=X_FU_MIN .OR. X_O2<=X_O2_MIN) EXIT ODE_LOOP2
                   DX_FDT= -A*ETRM*X_FU*X_O2
@@ -438,7 +438,7 @@ DO NR=1,N_REACTIONS
       MPUE(NR,N) = SPECIES(N)%MW*RN%NU(N)/ABS(RN%EPUMO2*SPECIES(RN%I_OXIDIZER)%MW*RN%NU(RN%I_OXIDIZER))
    ENDDO
    A(NR) = RN%BOF
-ENDDO 
+ENDDO
 NODETS = 20
 DTT    = DT/REAL(NODETS,EB)
 X_O2_MIN = 1.E-14_EB
@@ -492,9 +492,9 @@ DO K=1,KBAR
                X_FU_S = X_FU(NR) + DTT*DX_FDT
                X_O2_S = X_O2(NR) + DTT*DX_FDT*RN%NU(RN%I_OXIDIZER)/RN%NU(RN%I_FUEL)
                IF (X_O2_S<X_O2_MIN) THEN
-                  X_O2_S = X_O2_MIN 
+                  X_O2_S = X_O2_MIN
                   X_FU_S = MAX(0.0_EB,X_FU(NR)-(X_O2(NR)-X_O2_S)*RN%NU(RN%I_FUEL)/RN%NU(RN%I_OXIDIZER))
-               ENDIF  
+               ENDIF
                IF (X_FU_S<X_FU_MIN) THEN
                   X_FU_S = X_FU_MIN
                   X_O2_S = MAX(0.0_EB,X_O2(NR)-(X_FU(NR)-X_FU_S)*RN%NU(RN%I_OXIDIZER)/RN%NU(RN%I_FUEL))
@@ -512,7 +512,7 @@ DO K=1,KBAR
                   DYF(NR) = DYF(NR) * QFAC
                   Q_NR(NR) = Q_NR(NR) * QFAC
                   Q(I,J,K) = Q_UPPER
-               ENDIF   
+               ENDIF
                DO N=1,N_SPECIES
                   YYNEW = YY(I,J,K,N) + DT*MPUE(NR,N)*Q_NR(NR)/RHO(I,J,K)
                   YY(I,J,K,N) = MAX(YYMIN(N),YYNEW)
@@ -532,11 +532,11 @@ ENDDO
 ! Adjust the average molecular weight term, R*Sum(Yi/Mi)
 
 !$OMP WORKSHARE
-RSUM = SPECIES(0)%RCON
+! RSUM = SPECIES(0)%RCON
 !$OMP END WORKSHARE
 !$OMP END PARALLEL
 SLOOP: DO N=1,N_SPECIES
-   IF (SPECIES(N)%MODE/=GAS_SPECIES) CYCLE SLOOP         
+   IF (SPECIES(N)%MODE/=GAS_SPECIES) CYCLE SLOOP
    WFAC = SPECIES(N)%RCON - SPECIES(0)%RCON
    !$OMP PARALLEL WORKSHARE
    RSUM(:,:,:) = RSUM(:,:,:) + WFAC*YY(:,:,:,N)
@@ -563,7 +563,7 @@ DO K=1,KBAR
          TMPD = TMP(I,J,K)
          CALL RATE_CONSTANT(TMPD,ETRM1)
          NO_REACTION = .TRUE.
-! See if all rate constants or all reactant species are near zero         
+! See if all rate constants or all reactant species are near zero
          REACLOOP: DO NR = 1, N_REACTIONS
             IF (ETRM1(NR) < 1.E-30_EB) CYCLE REACLOOP
             Y_MIN_MIN = Y_MIN
@@ -614,7 +614,7 @@ REAL(EB), PARAMETER :: B21=0.2_EB,&
 REAL(EB),PARAMETER :: C1=37._EB/378._EB,C2=0._EB,C3=250._EB/621._EB,C4=125._EB/594._EB,C5=0._EB,C6=512._EB/1771._EB
 REAL(EB) :: DC1=C1-2825._EB/27648._EB,DC2=0._EB,DC3=C3-18575._EB/48384._EB,DC4=C4-13525._EB/55296._EB,DC5=C5-277._EB/14336._EB,&
             DC6=C6-0.25_EB
-REAL(EB) :: EPS = 1.E-4_EB,POWERUP=-0.2_EB,POWERDOWN=-0.25_EB,RELAX=0.9_EB        
+REAL(EB) :: EPS = 1.E-4_EB,POWERUP=-0.2_EB,POWERDOWN=-0.25_EB,RELAX=0.9_EB
 REAL(EB) :: XERR(N_REAC_SPECIES),XSCALE(N_REAC_SPECIES),XO(N_REAC_SPECIES),XN(N_REAC_SPECIES),K(6,N_REAC_SPECIES),DQ(6)
 REAL(EB) :: DTSTEP,TSTEP,ERRMAX,MINSTEP,DT,Q,DQDT
 INTEGER :: NS
@@ -629,8 +629,8 @@ ENDDO
 Q = 0._EB
 DQ = 0._EB
 
-TIMELOOP: DO 
-  
+TIMELOOP: DO
+
    XN = XO
    CALL DERIV(XN,KR,DQDT)
    K(1,:) = DTSTEP*XN
@@ -660,14 +660,14 @@ TIMELOOP: DO
    CALL DERIV(XN,KR,DQDT)
    K(6,:) = DTSTEP*XN
    DQ(6) = DTSTEP*DQDT
-   
+
    XN  = XO + C1 * K(1,:) +  C2 * K(2,:) +  C3 * K(3,:) +  C4 * K(4,:) +  C5  * K(5,:) +  C6  * K(6,:)
    XERR =   DC1 * K(1,:) + DC2 * K(2,:) + DC3 * K(3,:) + DC4 * K(4,:) + DC5  * K(5,:) + DC6  * K(6,:)
 
    XSCALE = ABS(X) + ZERO_P! + ABS(K(1,:)) + ZERO_P
    ERRMAX = MAXVAL(ABS(XERR) / XSCALE) / EPS
 
-   IF (ERRMAX > 1._EB .AND. DTSTEP > MINSTEP) THEN      
+   IF (ERRMAX > 1._EB .AND. DTSTEP > MINSTEP) THEN
       DTSTEP = MAX(MINSTEP,0.1_EB*DTSTEP,RELAX*DTSTEP*ERRMAX**POWERDOWN)
    ELSE
       XO = XN
@@ -719,7 +719,7 @@ DO NS = 1,N_REAC_SPECIES
    RS => REAC_SPECIES(NS)
    DO NR = 1, RS%N_REACTIONS
       DXDT(NS) = DXDT(NS) + RATE(RS%REACTION_POINTER(NR,1)) * REACTION(RS%REACTION_POINTER(NR,1))%NU(RS%REACTION_POINTER(NR,2))
-   ENDDO 
+   ENDDO
 ENDDO
 
 END SUBROUTINE DERIV
@@ -805,6 +805,5 @@ READ (MODULE_DATE,'(I5)') MODULE_REV
 WRITE(MODULE_DATE,'(A)') firedate
 
 END SUBROUTINE GET_REV_fire
- 
-END MODULE FIRE
 
+END MODULE FIRE

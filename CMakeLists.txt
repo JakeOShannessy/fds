@@ -3,18 +3,11 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 project(
     fds
     VERSION 6.9.1
-    LANGUAGES Fortran
+    LANGUAGES Fortran C
 )
-enable_language(Fortran)
+enable_language(Fortran C)
 
 option(DUMP_JSON           "Add the option to dump info to JSON"      OFF)
-option(USE_SYSTEM_JSON     "Use the json library from the system"     OFF)
-
-option(USE_HYPRE           "Use the hypre library"                    ON)
-option(USE_SYSTEM_HYPRE    "Use the hypre library from the system"    OFF)
-
-option(USE_SUNDIALS        "Use the sundials library"                 ON)
-option(USE_SYSTEM_SUNDIALS "Use the sundials library from the system" OFF)
 
 option(USE_OPENMP          "Use OpenMP"                               ON)
 
@@ -24,43 +17,40 @@ set(MKL_LINK static CACHE STRING "Linking method for MKL (static or dynamic)")
 set_property(CACHE MKL_LINK PROPERTY STRINGS static dynamic)
 
 add_executable(fds
-    Source/main.f90
-    Source/prec.f90
-    Source/cons.f90
-    Source/devc.f90
-    Source/type.f90
-    Source/data.f90
-    Source/mesh.f90
-    Source/func.f90
-    Source/gsmv.f90
-    Source/smvv.f90
-    Source/turb.f90
-    Source/soot.f90
-    Source/pois.f90
-    Source/geom.f90
-    Source/radi.f90
-    Source/part.f90
-    Source/vege.f90
-    Source/ctrl.f90
-    Source/hvac.f90
-    Source/mass.f90
-    Source/wall.f90
-    Source/fire.f90
-    Source/velo.f90
-    Source/pres.f90
-    Source/init.f90
-    Source/irad.f90
-    Source/dump.f90
-    Source/evac.f90
-    Source/ieva.f90
-    Source/read.f90
-    Source/samr.f90
-    Source/scrc.f90
-    Source/divg.f90
+    FDS_Source/cons.f90
+    FDS_Source/ctrl.f90
+    FDS_Source/devc.f90
+    FDS_Source/divg.f90
+    FDS_Source/dump.f90
+    FDS_Source/evac.f90
+    FDS_Source/fire.f90
+    FDS_Source/func.f90
+    FDS_Source/hvac.f90
+    FDS_Source/ieva.f90
+    FDS_Source/init.f90
+    FDS_Source/irad.f90
+    FDS_Source/isob.c
+    FDS_Source/main.f90
+    FDS_Source/mass.f90
+    FDS_Source/mesh.f90
+    FDS_Source/mpip.f90
+    FDS_Source/part.f90
+    FDS_Source/pois.f90
+    FDS_Source/prec.f90
+    FDS_Source/pres.f90
+    FDS_Source/radi.f90
+    FDS_Source/read.f90
+    FDS_Source/scrc.f90
+    FDS_Source/smvv.f90
+    FDS_Source/turb.f90
+    FDS_Source/type.f90
+    FDS_Source/vege.f90
+    FDS_Source/velo.f90
+    FDS_Source/wall.f90
 )
 
 if (DUMP_JSON)
-    target_sources(fds PRIVATE Source/json.f90)
+    target_sources(fds PRIVATE FDS_Source/json.f90)
 endif()
 
 target_include_directories(fds PRIVATE .)
@@ -124,6 +114,10 @@ if (USE_OPENMP)
     target_link_libraries(fds PUBLIC OpenMP::OpenMP_Fortran)
 endif()
 
+if (WIN32)
+    target_compile_definitions(fds PRIVATE pp_noappend)
+endif()
+
 # Set compiler flags for various compilers
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     target_compile_options(fds PRIVATE -cpp -std=f2018 -frecursive -ffpe-summary=none -fall-intrinsics)
@@ -147,90 +141,6 @@ endif()
 
 if(WIN32)
     set(BUILD_SHARED_LIBS OFF)
-endif()
-
-# Find or build hypre if the option is set to use it
-if(USE_HYPRE)
-    # Unless forced to use the system version, download and build hypre
-    if(NOT(USE_SYSTEM_HYPRE))
-        include(FetchContent)
-        # As we are not using the system hypre, we need to choose the version we
-        # want
-        set(HYPRE_GIT_VERSION "3.0.0" )
-        FetchContent_Declare(
-            HYPRE
-            GIT_REPOSITORY https://github.com/hypre-space/hypre.git
-            # Currently we need to refer directly to a commit which contains a
-            # patch to handle HYPRE_FMANGLE
-            GIT_TAG        6d01417697aa84d118eb1e1eb91315df42575be5 # v${HYPRE_GIT_VERSION}
-            SOURCE_SUBDIR  src
-            OVERRIDE_FIND_PACKAGE
-        )
-        # Set some options for building hypre
-        if (WIN32)
-            set(HYPRE_ENABLE_FMANGLE CAPS)
-        endif()
-        FetchContent_MakeAvailable(HYPRE)
-    endif()
-
-    # Use hypre if found
-    find_package(HYPRE)
-    if(HYPRE_FOUND)
-        if(NOT(HYPRE_VERSION))
-            # We aren't using the system version so we'll revert to the git
-            # version
-            set(HYPRE_VERSION "${HYPRE_GIT_VERSION}")
-        endif()
-        target_link_libraries(fds PRIVATE HYPRE)
-        target_compile_definitions(fds PRIVATE WITH_HYPRE)
-        target_compile_definitions(fds PRIVATE HYPRE_PP="${HYPRE_VERSION}")
-    endif()
-endif()
-
-# Find or build sundials if the option is set to use it
-if(USE_SUNDIALS)
-    # Unless forced to use the system version, download and build sundials
-    if(NOT(USE_SYSTEM_SUNDIALS))
-        include(FetchContent)
-        # As we are not using the system sundials, we need to choose the version
-        # we want
-        set(SUNDIALS_GIT_VERSION "7.5.0")
-        FetchContent_Declare(
-            SUNDIALS
-            GIT_REPOSITORY https://github.com/LLNL/sundials.git
-            GIT_TAG        v${SUNDIALS_GIT_VERSION}
-            OVERRIDE_FIND_PACKAGE
-        )
-        # Set some options for building sundials
-        set(ENABLE_MPI ON CACHE BOOL "" FORCE)
-        set(BUILD_FORTRAN_MODULE_INTERFACE ON CACHE BOOL "" FORCE)
-        set(EXAMPLES_ENABLE_C OFF CACHE BOOL "" FORCE)
-        set(EXAMPLES_ENABLE_CXX OFF CACHE BOOL "" FORCE)
-        set(EXAMPLES_ENABLE_F2003 OFF CACHE BOOL "" FORCE)
-        set(EXAMPLES_INSTALL OFF CACHE BOOL "" FORCE)
-        set(ENABLE_OPENMP ON CACHE BOOL "" FORCE)
-        set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
-        # if(HYPRE_FOUND)
-        #     set(ENABLE_HYPRE ON CACHE BOOL "" FORCE)
-        #     FetchContent_MakeAvailable(HYPRE SUNDIALS)
-        # else()
-            FetchContent_MakeAvailable(SUNDIALS)
-        # endif()
-    endif()
-
-    # Use sundials if found
-    find_package(SUNDIALS)
-    if(SUNDIALS_FOUND)
-        if(NOT(SUNDIALS_VERSION))
-            # We aren't using the system version so we'll revert to the git
-            # version
-            set(SUNDIALS_VERSION "${SUNDIALS_GIT_VERSION}")
-        endif()
-        target_link_libraries(fds PRIVATE SUNDIALS::fcvode_mod)
-        target_link_libraries(fds PRIVATE SUNDIALS::fnvecserial_mod)
-        target_compile_definitions(fds PRIVATE WITH_SUNDIALS)
-        target_compile_definitions(fds PRIVATE SUNDIALS_PP="${SUNDIALS_VERSION}")
-    endif()
 endif()
 
 if (DUMP_JSON)
@@ -263,4 +173,5 @@ install(TARGETS fds)
 
 include(CTest)
 enable_testing()
-add_subdirectory(Tests)
+add_test(NAME "FDS Executes"
+    COMMAND fds)
