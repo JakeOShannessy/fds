@@ -386,6 +386,7 @@ cat << EOF >> $scriptfile
 #SBATCH --cpus-per-task=$n_openmp_threads
 #SBATCH --nodes=$nodes
 #SBATCH --time=$walltime
+#SBATCH --overcommit
 EOF
 
 if [[ $n_openmp_threads -gt 1 ]] || [[ $max_mpi_processes_per_node -lt 1000 ]] ; then
@@ -472,7 +473,7 @@ echo "started running at \`date\`" >> $qlog
 EOF
 
 cat << EOF >> $scriptfile
-$MPIRUN $exe $in 
+$MPIRUN $exe $in
 EOF
 
 cat << EOF >> $scriptfile
@@ -538,4 +539,3 @@ $QSUB $scriptfile | tee -a $qlog
 cat $scriptfile > $scriptlog
 echo "#$QSUB $scriptfile" >> $scriptlog
 rm $scriptfile
-

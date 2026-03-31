@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 project(
     fds
-    VERSION 6.9.1
+    VERSION 6.10.1
     LANGUAGES Fortran
 )
 enable_language(Fortran)

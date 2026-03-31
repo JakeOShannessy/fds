@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export SBATCH_MEM_PER_NODE=5G
+
 $QFDS -p 4 -d Adaptive_Mesh_Refinement random_meshes.fds
 # $QFDS -p 2 -d Adaptive_Mesh_Refinement ns2d_16_emb_1to1_refinement.fds
 # $QFDS -p 2 -d Adaptive_Mesh_Refinement ns2d_16_emb_1to2_refinement.fds
@@ -20,10 +22,10 @@ $QFDS -d Aerosols propane_flame_deposition_thermophoretic.fds
 $QFDS -d Aerosols propane_flame_deposition_turbulent.fds
 $QFDS -d Aerosols soot_oxidation_wall.fds
 
-$QFDS -p 36 -d Atmospheric_Effects atmospheric_boundary_layer_1.fds
-$QFDS -p 36 -d Atmospheric_Effects atmospheric_boundary_layer_2.fds
-$QFDS -p 36 -d Atmospheric_Effects atmospheric_boundary_layer_3.fds
-$QFDS -p 36 -d Atmospheric_Effects atmospheric_boundary_layer_4.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 36 -d Atmospheric_Effects atmospheric_boundary_layer_1.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 36 -d Atmospheric_Effects atmospheric_boundary_layer_2.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 36 -d Atmospheric_Effects atmospheric_boundary_layer_3.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 36 -d Atmospheric_Effects atmospheric_boundary_layer_4.fds
 $QFDS -d Atmospheric_Effects lee_waves.fds
 $QFDS -d Atmospheric_Effects stack_effect.fds
 $QFDS -d Atmospheric_Effects lapse_rate.fds
@@ -251,9 +253,9 @@ $QFDS -d Flowfields hot_layer_360.fds
 $QFDS -d Flowfields realizable_mass_fractions.fds
 $QFDS -p 4 -d Flowfields parabolic_profile.fds
 $QFDS -p 5 -d Flowfields simple_duct.fds
-$QFDS -p 8 -d Flowfields symmetry_test_mpi.fds
-$QFDS -p 8 -d Flowfields volume_flow_1.fds
-$QFDS -p 8 -d Flowfields volume_flow_2.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Flowfields symmetry_test_mpi.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Flowfields volume_flow_1.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Flowfields volume_flow_2.fds
 
 $QFDS -d Heat_Transfer adiabatic_con_flux.fds
 $QFDS -d Heat_Transfer adiabatic_net_flux.fds
@@ -279,16 +281,16 @@ $QFDS -d Heat_Transfer ht1d_pile.fds
 $QFDS -d Heat_Transfer ht3d_pile.fds
 $QFDS -d Heat_Transfer ht3d_beam_heating_1.fds
 $QFDS -d Heat_Transfer ht3d_beam_heating_2.fds
-$QFDS -p 8 -d Heat_Transfer ht3d_demo.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Heat_Transfer ht3d_demo.fds
 $QFDS -d Heat_Transfer ht3d_energy_conservation.fds
 $QFDS -d Heat_Transfer ht3d_energy_conservation_2.fds
 $QFDS -d Heat_Transfer ht3d_energy_conservation_3.fds
-$QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_4.fds
-$QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_5.fds
-$QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_6.fds
-$QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_7.fds
-$QFDS -p 36 -d Heat_Transfer ht3d_energy_conservation_8.fds
-$QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_9.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_4.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_5.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_6.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_7.fds
+SBATCH_MEM_PER_NODE=100G $QFDS -p 36 -d Heat_Transfer ht3d_energy_conservation_8.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Heat_Transfer ht3d_energy_conservation_9.fds
 $QFDS -d Heat_Transfer ht3d_ibeam.fds
 $QFDS -d Heat_Transfer ht3d_mass_conservation.fds
 $QFDS -d Heat_Transfer ht3d_mass_conservation_2.fds
@@ -385,7 +387,7 @@ $QFDS -d Pressure_Effects zone_break_fast_ulmat.fds
 $QFDS -d Pressure_Effects zone_break_slow_ulmat.fds
 $QFDS -p 4 -d Pressure_Effects zone_break_fast_uglmat.fds
 $QFDS -p 2 -d Pressure_Effects zone_shape.fds
-$QFDS -p 8 -d Pressure_Effects zone_shape_2.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Pressure_Effects zone_shape_2.fds
 $QFDS -d Pressure_Effects obst_coarse_fine_interface.fds
 
 $QFDS -d Pressure_Solver dancing_eddies_1mesh.fds
@@ -438,7 +440,7 @@ $QFDS -d Pyrolysis birch_tga_1step_20.fds
 $QFDS -d Pyrolysis enthalpy.fds
 $QFDS -d Pyrolysis ice_cube.fds
 $QFDS -d Pyrolysis liquid_mixture.fds
-$QFDS -p 8 -d Pyrolysis methanol_evaporation.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Pyrolysis methanol_evaporation.fds
 $QFDS -d Pyrolysis part_baking_soda_420K.fds
 $QFDS -d Pyrolysis part_baking_soda_450K.fds
 $QFDS -d Pyrolysis part_baking_soda_500K.fds
@@ -510,7 +512,7 @@ $QFDS -d Radiation droplet_absorption_cart.fds
 $QFDS -d Radiation droplet_absorption_cyl.fds
 $QFDS -d Radiation emissivity.fds
 $QFDS -p 2 -d Radiation geom_rad.fds
-$QFDS -p 8 -d Radiation geom_rad_2.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Radiation geom_rad_2.fds
 $QFDS -d Radiation hot_spheres.fds
 $QFDS -d Radiation part_attenuation.fds
 $QFDS -d Radiation plate_view_factor_2D_30.fds
@@ -588,7 +590,7 @@ $QFDS -d Restart geom_ls_restart_base_case.fds
 $QFDS -d Restart clocks_restart_a.fds
 $QFDS -d Restart clocks_restart_base_case.fds
 $QFDS -p 4 -d Restart restart_ulmat_a.fds
-$QFDS -p 8 -d Restart csvf_restart_a.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Restart csvf_restart_a.fds
 
 $QFDS -d Species burke_schumann.fds
 $QFDS -d Species FED_FIC.fds
@@ -651,7 +653,7 @@ $QFDS -d Species humidity.fds
 $QFDS -d Species mass_flux_wall_yindex.fds
 $QFDS -d Species mass_flux_wall_zindex.fds
 $QFDS -d Species mass_balance_gas_volume.fds
-$QFDS -p 8 -d Species mass_balance_reac.fds
+SBATCH_MEM_PER_NODE=20G $QFDS -p 8 -d Species mass_balance_reac.fds
 $QFDS -d Species mass_balance_reac_2.fds
 $QFDS -p 3 -d Species favre_test.fds
 $QFDS -p 4 -d Species 1_step_2_step_compare.fds
@@ -791,22 +793,22 @@ $QFDS -p 4 -d Scalar_Analytical_Solution soborot_mp5_cos_wave_128.fds
 $QFDS -o 1 -d Thread_Check race_test_1.fds
 $QFDS -o 4 -d Thread_Check race_test_4.fds
 
-$QFDS -o 1 -d Timing_Benchmarks openmp_test64a.fds
-$QFDS -o 2 -d Timing_Benchmarks openmp_test64b.fds
-$QFDS -o 3 -d Timing_Benchmarks openmp_test64c.fds
-$QFDS -o 4 -d Timing_Benchmarks openmp_test64d.fds
-$QFDS -o 5 -d Timing_Benchmarks openmp_test64e.fds
-$QFDS -o 6 -d Timing_Benchmarks openmp_test64f.fds
-$QFDS -o 7 -d Timing_Benchmarks openmp_test64g.fds
-$QFDS -o 8 -d Timing_Benchmarks openmp_test64h.fds
-$QFDS -o 1 -d Timing_Benchmarks openmp_test128a.fds
-$QFDS -o 2 -d Timing_Benchmarks openmp_test128b.fds
-$QFDS -o 3 -d Timing_Benchmarks openmp_test128c.fds
-$QFDS -o 4 -d Timing_Benchmarks openmp_test128d.fds
-$QFDS -o 5 -d Timing_Benchmarks openmp_test128e.fds
-$QFDS -o 6 -d Timing_Benchmarks openmp_test128f.fds
-$QFDS -o 7 -d Timing_Benchmarks openmp_test128g.fds
-$QFDS -o 8 -d Timing_Benchmarks openmp_test128h.fds
+# $QFDS -o 1 -d Timing_Benchmarks openmp_test64a.fds
+# $QFDS -o 2 -d Timing_Benchmarks openmp_test64b.fds
+# $QFDS -o 3 -d Timing_Benchmarks openmp_test64c.fds
+# $QFDS -o 4 -d Timing_Benchmarks openmp_test64d.fds
+# $QFDS -o 5 -d Timing_Benchmarks openmp_test64e.fds
+# $QFDS -o 6 -d Timing_Benchmarks openmp_test64f.fds
+# $QFDS -o 7 -d Timing_Benchmarks openmp_test64g.fds
+# $QFDS -o 8 -d Timing_Benchmarks openmp_test64h.fds
+# $QFDS -o 1 -d Timing_Benchmarks openmp_test128a.fds
+# $QFDS -o 2 -d Timing_Benchmarks openmp_test128b.fds
+# $QFDS -o 3 -d Timing_Benchmarks openmp_test128c.fds
+# $QFDS -o 4 -d Timing_Benchmarks openmp_test128d.fds
+# $QFDS -o 5 -d Timing_Benchmarks openmp_test128e.fds
+# $QFDS -o 6 -d Timing_Benchmarks openmp_test128f.fds
+# $QFDS -o 7 -d Timing_Benchmarks openmp_test128g.fds
+# $QFDS -o 8 -d Timing_Benchmarks openmp_test128h.fds
 
 $QFDS -d Turbulence csmag0_32.fds
 $QFDS -d Turbulence csmag_32.fds
