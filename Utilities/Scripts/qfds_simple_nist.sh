@@ -158,6 +158,7 @@ cat << EOF >> "$scriptfile"
 #SBATCH --ntasks=$n_mpi_processes
 #SBATCH --cpus-per-task=$n_openmp_threads
 #SBATCH --nodes=$nodes
+#SBATCH --mem-per-cpu=2000M
 EOF
 
 
@@ -205,7 +206,7 @@ EOF
 
 cat << EOF >> "$scriptfile"
 # export MODULEPATH=/mnt/data-drive/infra/nist-builds/fds-6.10.1/bin/modules:$MODULEPATH
-export /mnt/data-drive/infra/nist-fds/bin/modules:$MODULEPATH
+export MODULEPATH=/mnt/data-drive/infra/nist-fds/bin/modules:$MODULEPATH
 module load FDS6
 ulimit -s unlimited
 srun --mpi=pmi2 $exe $in

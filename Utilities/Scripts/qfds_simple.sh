@@ -158,6 +158,7 @@ cat << EOF >> "$scriptfile"
 #SBATCH --ntasks=$n_mpi_processes
 #SBATCH --cpus-per-task=$n_openmp_threads
 #SBATCH --nodes=$nodes
+#SBATCH --mem-per-cpu=2000M
 EOF
 
 
